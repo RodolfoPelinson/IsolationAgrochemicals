@@ -1,6 +1,6 @@
 # IsolationAgrochemicals
 
-The goal of this repository is to walk the user through the data analyses shown in “Impacts of agrochemicals and spatial isolation on the assembly and reassembly of temporary pond metacommunities   ”.
+The goal of this repository is to walk the user through the data analyses shown in “Impacts of agrochemicals and spatial isolation on the assembly and reassembly of temporary pond metacommunities”.
 
 Here you can find the r code the run some of the results shown in the main paper for:
 

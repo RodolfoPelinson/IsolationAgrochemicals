@@ -13,6 +13,57 @@ col_sugarcane_480 <- darken(col_sugarcane_30, amount = 0.5, space = "HCL")
 
 
 #SS1
+
+plot_com_SS1_herb_treat_30 <- function(){
+  plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
+  axis(1 , gap.axis = -10)
+  axis(2 , gap.axis = -10)
+  abline(h=0,v=0, lty =2)
+
+  ordiellipse(scaled_lvs$sites[SS1_predictors$isolation == "30",],
+              groups = SS1_predictors$treatments[SS1_predictors$isolation == "30"],
+              draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
+
+  #ordiellipse(scaled_lvs$sites,
+  #            groups = SS1_predictors$treatments,
+  #            draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
+
+  points(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",], bg = col_control_30, pch = 21)
+  points(scaled_lvs$sites[SS1_predictors$treatments == "pasture" & SS1_predictors$isolation == "30",], bg = col_pasture_30, pch = 21)
+  points(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",], bg = col_sugarcane_30, pch = 21)
+
+
+  centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",])
+  centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture" & SS1_predictors$isolation == "30",])
+  centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",])
+
+  #centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control",])
+  #centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture",])
+  #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane",])
+
+  for(i in 1:nrow(scaled_lvs$new_species)){
+    points(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], cex = 4, pch = 21, bg = col_SS1[i])
+    text(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], labels = substr(rownames(scaled_lvs$species)[i], 1, 3), cex = 0.9)
+  }
+
+  points(centroid_control_30[1], centroid_control_30[2], bg = col_control_30, pch = 23, cex = 1.5)
+  points(centroid_pasture_30[1], centroid_pasture_30[2], bg = col_pasture_30, pch = 23, cex = 1.5)
+  points(centroid_sugarcane_30[1], centroid_sugarcane_30[2], bg = col_sugarcane_30, pch = 23, cex = 1.5)
+
+  lines(x = c(centroid_control_30[1], centroid_pasture_30[1]),
+        y = c(centroid_control_30[2], centroid_pasture_30[2]))
+
+  lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
+        y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
+
+  lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
+        y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
+
+  box()
+
+  title(main = "30 m", adj = 1, line = 0.25)
+}
+
 plot_com_SS1_herb_treat_120 <- function(){
   plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
   axis(1 , gap.axis = -10)
@@ -1041,17 +1092,17 @@ plot_com_SS1_pred_treat_30 <- function(){
   points(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",], bg = col_sugarcane_30, pch = 21)
 
 
-  centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",])
+  centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",])
   centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture" & SS1_predictors$isolation == "30",])
   centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",])
 
-  #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control",])
+  #centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control",])
   #centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture",])
   #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane",])
 
 
-  #lines(x = c(centroid_sugarcane_30[1], centroid_sugarcane_30[1]),
-  #      y = c(centroid_sugarcane_30[2], centroid_sugarcane_30[2]))
+  #lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
+  #      y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
 
   #lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
   #      y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
@@ -1063,18 +1114,18 @@ plot_com_SS1_pred_treat_30 <- function(){
     text(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], labels = substr(rownames(scaled_lvs$species)[i], 1, 3), cex = 0.9)
   }
 
-  points(centroid_sugarcane_30[1], centroid_sugarcane_30[2], bg = col_control_30, pch = 23, cex = 1.5)
+  points(centroid_control_30[1], centroid_control_30[2], bg = col_control_30, pch = 23, cex = 1.5)
   points(centroid_pasture_30[1], centroid_pasture_30[2], bg = col_pasture_30, pch = 23, cex = 1.5)
   points(centroid_sugarcane_30[1], centroid_sugarcane_30[2], bg = col_sugarcane_30, pch = 23, cex = 1.5)
 
-  lines(x = c(centroid_sugarcane_30[1], centroid_pasture_30[1]),
-        y = c(centroid_sugarcane_30[2], centroid_pasture_30[2]))
+  lines(x = c(centroid_control_30[1], centroid_pasture_30[1]),
+        y = c(centroid_control_30[2], centroid_pasture_30[2]))
 
   lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
         y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
 
-  lines(x = c(centroid_sugarcane_30[1], centroid_sugarcane_30[1]),
-        y = c(centroid_sugarcane_30[2], centroid_sugarcane_30[2]))
+  lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
+        y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
 
 
 
