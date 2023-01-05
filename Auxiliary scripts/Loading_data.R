@@ -61,13 +61,17 @@ Trait$trait <- as.factor(Trait$trait)
 Trait <- Trait[order(Trait$genus),]
 Trait_orig <- Trait
 
-dim(com_SS1)
-dim(com_SS2)
-dim(com_SS3)
-dim(com_SS4)
+com_SS1_orig <- com_SS1
+com_SS2_orig <- com_SS2
+com_SS3_orig <- com_SS3
+com_SS4_orig <- com_SS4
+
 
 com_oc <- decostand(com_orig, method = "pa")
 Trait_orig$total_ab <- colSums(com_orig)
+
+
+
 
 com_SS1_oc <- decostand(com_SS1, method = "pa")
 com_SS1 <- com_SS1[,colSums(com_SS1_oc) >= 4]
@@ -114,4 +118,21 @@ sum_com_SS1 <- summarize_community(com_SS1, ID_SS1)
 sum_com_SS2 <- summarize_community(com_SS2, ID_SS2_3_4)
 sum_com_SS3 <- summarize_community(com_SS3, ID_SS2_3_4)
 sum_com_SS4 <- summarize_community(com_SS4, ID_SS2_3_4)
+
+Trait_SS1_sum <- Trait_SS1[order(Trait_SS1$total_ab, decreasing = TRUE),]
+sum_com_SS1 <- sum_com_SS1[,order(Trait_SS1$total_ab, decreasing = TRUE)]
+
+Trait_SS2_sum <- Trait_SS2[order(Trait_SS2$total_ab, decreasing = TRUE),]
+sum_com_SS2 <- sum_com_SS2[,order(Trait_SS2$total_ab, decreasing = TRUE)]
+
+Trait_SS3_sum <- Trait_SS3[order(Trait_SS3$total_ab, decreasing = TRUE),]
+sum_com_SS3 <- sum_com_SS3[,order(Trait_SS3$total_ab, decreasing = TRUE)]
+
+Trait_SS4_sum <- Trait_SS4[order(Trait_SS4$total_ab, decreasing = TRUE),]
+sum_com_SS4 <- sum_com_SS4[,order(Trait_SS4$total_ab, decreasing = TRUE)]
+
+
+
+
+
 

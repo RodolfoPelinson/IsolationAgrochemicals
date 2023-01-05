@@ -189,7 +189,7 @@ functions sourced from the ’Auxiliary scripts” folder.
 SS1_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_herb_det_SS1 <- sum_com_SS1[,Trait_SS1$trophic == "consumer"]
+sum_com_herb_det_SS1 <- sum_com_SS1[,Trait_SS1_sum$trophic == "consumer"]
 
 col_SS1 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS1))
 col_SS1[Trait_SS1$trait[Trait_SS1$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
@@ -473,7 +473,7 @@ Ploting it:
 SS2_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_herb_det_SS2 <- sum_com_SS2[,Trait_SS2$trophic == "consumer"]
+sum_com_herb_det_SS2 <- sum_com_SS2[,Trait_SS2_sum$trophic == "consumer"]
 
 col_SS2 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS2))
 col_SS2[Trait_SS2$trait[Trait_SS2$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
@@ -861,7 +861,7 @@ Ploting it:
 SS3_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3$trophic == "consumer"]
+sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "consumer"]
 
 col_SS3 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS3))
 col_SS3[Trait_SS3$trait[Trait_SS3$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
@@ -1297,7 +1297,7 @@ Ploting it:
 SS4_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_herb_det_SS4 <- sum_com_SS4[,Trait_SS4$trophic == "consumer"]
+sum_com_herb_det_SS4 <- sum_com_SS4[,Trait_SS4_sum$trophic == "consumer"]
 
 col_SS4 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS4))
 col_SS4[Trait_SS4$trait[Trait_SS4$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"

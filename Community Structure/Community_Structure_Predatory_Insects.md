@@ -161,7 +161,7 @@ functions sourced from the ’Auxiliary scripts” folder.
 SS1_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_predators_SS1 <- sum_com_SS1[,Trait_SS1$trophic == "predator"]
+sum_com_predators_SS1 <- sum_com_SS1[,Trait_SS1_sum$trophic == "predator"]
 
 col_SS1 <- rep("lightsalmon1", ncol(sum_com_predators_SS1))
 
@@ -401,7 +401,7 @@ Ploting it:
 SS2_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_predators_SS2 <- sum_com_SS2[,Trait_SS2$trophic == "predator"]
+sum_com_predators_SS2 <- sum_com_SS2[,Trait_SS2_sum$trophic == "predator"]
 
 col_SS2 <- rep("lightsalmon1", ncol(sum_com_predators_SS2))
 
@@ -648,7 +648,7 @@ Ploting it:
 SS3_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_predators_SS3 <- sum_com_SS3[,Trait_SS3$trophic == "predator"]
+sum_com_predators_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "predator"]
 
 col_SS3 <- rep("lightsalmon1", ncol(sum_com_predators_SS3))
 
@@ -904,7 +904,7 @@ Ploting it:
 SS4_predictors <- data.frame(treatments = treatments_SS1,
                              isolation = isolation_SS1)
 
-sum_com_predators_SS4 <- sum_com_SS4[,Trait_SS4$trophic == "predator"]
+sum_com_predators_SS4 <- sum_com_SS4[,Trait_SS4_sum$trophic == "predator"]
 
 col_SS4 <- rep("lightsalmon1", ncol(sum_com_predators_SS4))
 
