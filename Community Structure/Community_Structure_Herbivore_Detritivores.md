@@ -48,7 +48,7 @@ setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/get_scaled_lvs.R")
 ```
 
-# Predatory insects
+# Herbivores and Detritivores
 
 Lets make tables with only herbivore and insectivores. Note that here we
 excludes species that occur in less than 4 samples in each survey

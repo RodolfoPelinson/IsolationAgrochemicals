@@ -1,3 +1,5 @@
+
+
 com_predators <- com[,Trait$trophic == "predator"]
 com_predators_SS1 <- com_SS1[,Trait_SS1$trophic == "predator"]
 com_predators_SS2 <- com_SS2[,Trait_SS2$trophic == "predator"]
