@@ -1,0 +1,294 @@
+---
+title: "Response to Reviewers - Exclusion of rare species"
+author: "Rodolfo Pelinson"
+date: "13/05/2023"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Before anything, lets load all auxiliary scripts and data necessary
+```{r, echo = TRUE, message=FALSE, warning=FALSE}
+library(vegan)
+library(gllvm)
+```
+
+```{r, include = FALSE}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/Loading_data.R")
+source("Auxiliary scripts/Ordination_plots.R")
+source("Auxiliary scripts/gllvm_AICc_tab.R")
+source("Auxiliary scripts/run_multiple_lv.R")
+source("Auxiliary scripts/run_multiple_gllvm.R")
+source("Auxiliary scripts/get_scaled_lvs.R")
+```
+
+
+This is an example of the analyses of the effects of isolation and agrochemical treatments on herbivores and detritivores in the third survey of the experiment. I am repeating the analysis including and excluding species with three or less presences across all 180 samples. I chose this survey and herbivores and detritivores because this is where we observe the most significant changes in results when we keep all species.
+
+
+```{r}
+com_herb_det_SS3 <- com_SS3_orig[,Trait_SS3_orig$trophic == "consumer"]
+
+SS3_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+
+```
+
+How many species do we have?
+```{r}
+ncol(com_herb_det_SS3)
+```
+
+What if we exclude species with three or less presences across all 180 samples.
+```{r}
+com_herb_det_SS3_pa <- decostand(com_herb_det_SS3, method = "pa")
+ncol(com_herb_det_SS3[,colSums(com_herb_det_SS3_pa)>3])
+
+```
+
+It seems we exclude only one species from the original community. Lets see which species
+```{r}
+colSums(com_herb_det_SS3_pa) #number of occurrences
+colSums(com_herb_det_SS3) #total abundances
+
+```
+
+It seems only Elachistocleis sp. Was excluded. It occurred in only one sample of the 180 samples. Lets see which sample:
+
+```{r}
+SS3_predictors[which(com_herb_det_SS3_pa$Elachistocleis.sp. > 0),]
+```
+It seems it was in pond B04, which is at 120 m of isolation and is a control for agrochemical addition.
+
+
+
+## Keeping all species
+Lets plot and analyse data including this species:
+
+
+How many latent variables do we need?
+```{r, cache = TRUE, warning=FALSE}
+n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    row.eff = ~ (1|ID),
+                                    y = com_herb_det_SS3, X = SS3_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 11:20)
+
+n_latent_tab_SS3
+
+```
+It looks that zero latent variables is the way to go.
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    X = SS3_predictors,
+                                                    X_row = data.frame(ID = ID_SS2_3_4),
+                                                    y = com_herb_det_SS3,
+                                                    row.eff = ~ (1|ID),
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 11:20)
+
+model_herb_det_selection_SS3
+```
+It seems like there are only aditive effects of isolation and agrochemical treatments.
+
+Ploting the ordinations:
+```{r, dpi=150, fig.width=9, fig.height=6, fig.align = 'center', warning=FALSE}
+SS3_predictors <- data.frame(treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+
+sum_com_herb_det_SS3 <- sum_com_orig_SS3[,Trait_SS3_sum_orig$trophic == "consumer"]
+
+col_SS3 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS3))
+col_SS3[Trait_SS3_sum_orig$trait[Trait_SS3_sum_orig$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+
+
+fit_SS3_plot <- gllvm(sum_com_herb_det_SS3,
+                      formula = ~ 1,
+                      family = "negative.binomial",
+                      method = "VA",
+                      n.init = 10, num.lv = 2, seed = 11:20)
+
+
+scaled_lvs <- get_scaled_lvs(fit_SS3_plot, alpha = 0.5)
+
+scaled_lvs$new_species <- scaled_lvs$species/3
+
+xmin <- min(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+xmax <- max(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+ymin <- min(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
+ymax <- max(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
+
+
+par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
+
+plot_com_SS3_herb_treat_30()
+
+plot_com_SS3_herb_treat_120()
+
+plot_com_SS3_herb_treat_480()
+
+par(mar = c(0,0,0,0),cex = 1.25)
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(23, 23, 23), legend = c("Centroid - Control", "Centroid - Pasture", "Centroid - Sugarcane"), pt.bg	= c(col_control_30, col_pasture_30, col_sugarcane_30), bty = "n")
+
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(21, 21, 21), legend = c("Ponds - Control", "Ponds - Pasture", "Ponds - Sugarcane"), pt.bg	= c(col_control_30, col_pasture_30, col_sugarcane_30), bty = "n", pt.cex	= 0.75)
+
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg	= c("cyan3","darkolivegreen3"), bty = "n", pt.cex	= 2.5, pt.lwd	= 1.5)
+```
+
+
+
+
+
+
+
+## Now lets repeat everything excluding Elachistocleis sp.
+
+```{r}
+com_herb_det_SS3_pa <- decostand(com_herb_det_SS3, method = "pa")
+ncol(com_herb_det_SS3[,colSums(com_herb_det_SS3_pa)>3])
+
+com_herb_det_SS3 <- com_herb_det_SS3[,colSums(com_herb_det_SS3_pa)>3]
+
+SS3_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+```
+
+How many latent variables do we need?
+```{r, cache = TRUE, warning=FALSE}
+n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    row.eff = ~ (1|ID),
+                                    y = com_herb_det_SS3, X = SS3_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 11:20)
+
+n_latent_tab_SS3
+
+```
+It looks that zero latent variables is still the way to go.
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+model_herb_det_selection_SS3_excluding <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    X = SS3_predictors,
+                                                    X_row = data.frame(ID = ID_SS2_3_4),
+                                                    y = com_herb_det_SS3,
+                                                    row.eff = ~ (1|ID),
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 11:20)
+
+model_herb_det_selection_SS3_excluding
+```
+Now it looks like we have interactive effects of treatments!
+
+
+Ploting the ordination:
+```{r, dpi=150, fig.width=9, fig.height=6, fig.align = 'center', warning=FALSE}
+SS3_predictors <- data.frame(treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+
+sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "consumer"]
+
+col_SS3 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS3))
+col_SS3[Trait_SS3_sum$trait[Trait_SS3_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+
+
+fit_SS3_plot <- gllvm(sum_com_herb_det_SS3,
+                      formula = ~ 1,
+                      family = "negative.binomial",
+                      method = "VA",
+                      n.init = 10, num.lv = 2, seed = 11:20)
+
+
+scaled_lvs <- get_scaled_lvs(fit_SS3_plot, alpha = 0.5)
+
+scaled_lvs$new_species <- scaled_lvs$species/3
+
+xmin <- min(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+xmax <- max(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+ymin <- min(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
+ymax <- max(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
+
+
+par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
+
+plot_com_SS3_herb_treat_30()
+
+plot_com_SS3_herb_treat_120()
+
+plot_com_SS3_herb_treat_480()
+
+par(mar = c(0,0,0,0),cex = 1.25)
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(23, 23, 23), legend = c("Centroid - Control", "Centroid - Pasture", "Centroid - Sugarcane"), pt.bg	= c(col_control_30, col_pasture_30, col_sugarcane_30), bty = "n")
+
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(21, 21, 21), legend = c("Ponds - Control", "Ponds - Pasture", "Ponds - Sugarcane"), pt.bg	= c(col_control_30, col_pasture_30, col_sugarcane_30), bty = "n", pt.cex	= 0.75)
+
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg	= c("cyan3","darkolivegreen3"), bty = "n", pt.cex	= 2.5, pt.lwd	= 1.5)
+```
+
+
+## Conclusion
+
+Interesting, the ordinations are basically the same ones, however, the simple addition of one species that only has one occurrence added enough noise to make interactive effects of treatments desapear when we did a model selection based on AICc. 
+
+Why did this happened?
+This is likely due to the fact that we have realtively small communities, with about 10 or less species. In this case, the inclusion of one more species with little to no information regarding the effect of treatments on its abudance increasead the AIC values of more complex models. That makes sense since we are trying to estimate parameters of a complex model (isolation * agrochemicals) for a species with only one occurrence. In this case, it is clear that AIC will heavily penalyze complex models for these species. For example, see what happens to AIC values when we try to model only the abundance of Elachistocleis sp. as a function of treatments and do model selection. The AIC values of the model with the two-way interaction is heavely penalized.
+
+```{r, warning=FALSE, message=FALSE}
+library(glmmTMB)
+library(AICcmodavg)
+
+SS3_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+
+mod_no_effect <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ 1 + (1|ID), data = SS3_predictors)
+mod_treatments <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + (1|ID), data = SS3_predictors)
+mod_isolation <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ isolation + (1|ID), data = SS3_predictors)
+mod_aditive <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + isolation + (1|ID), data = SS3_predictors)
+mod_interaction <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments * isolation + (1|ID), data = SS3_predictors)
+
+aictab(list(mod_no_effect, mod_treatments, mod_isolation, mod_aditive, mod_interaction), modnames = c("No Effect","Treatments","Isolation","Aditive","Interaction"))
+
+```
+
+### Therefore, we chose to exclude really rare species from all our analyses of community structure.

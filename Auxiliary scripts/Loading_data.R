@@ -72,31 +72,45 @@ Trait_orig$total_ab <- colSums(com_orig)
 
 
 
-
 com_SS1_oc <- decostand(com_SS1, method = "pa")
+com_SS1_excluded <- com_SS1[,colSums(com_SS1_oc) <= 3]
 com_SS1 <- com_SS1[,colSums(com_SS1_oc) >= 4]
+Trait_SS1_orig <- Trait[which(colSums(com_SS1_oc) > 0),]
 Trait_SS1 <- Trait[which(colSums(com_SS1_oc)>= 4),]
 Trait_SS1$total_ab <- colSums(com_SS1)
 
+
 com_SS2_oc <- decostand(com_SS2, method = "pa")
+com_SS2_excluded <- com_SS2[,colSums(com_SS2_oc) <= 3]
 com_SS2 <- com_SS2[,colSums(com_SS2_oc) >= 4]
+Trait_SS2_orig <- Trait[which(colSums(com_SS2_oc) > 0),]
 Trait_SS2 <- Trait[which(colSums(com_SS2_oc)>= 4),]
 Trait_SS2$total_ab <- colSums(com_SS2)
 
+
 com_SS3_oc <- decostand(com_SS3, method = "pa")
+com_SS3_excluded <- com_SS3[,colSums(com_SS3_oc) <= 3]
 com_SS3 <- com_SS3[,colSums(com_SS3_oc) >= 4]
+Trait_SS3_orig <- Trait[which(colSums(com_SS3_oc) > 0),]
 Trait_SS3 <- Trait[which(colSums(com_SS3_oc)>= 4),]
 Trait_SS3$total_ab <- colSums(com_SS3)
 
+
 com_SS4_oc <- decostand(com_SS4, method = "pa")
+com_SS4_excluded <- com_SS4[,colSums(com_SS4_oc) <= 3]
 com_SS4 <- com_SS4[,colSums(com_SS4_oc) >= 4]
+Trait_SS4_orig <- Trait[which(colSums(com_SS4_oc) > 0),]
 Trait_SS4 <- Trait[which(colSums(com_SS4_oc)>= 4),]
 Trait_SS4$total_ab <- colSums(com_SS4)
+
 
 com <- com_orig[,colSums(com_SS1_oc) >= 4 | colSums(com_SS2_oc) >= 4 | colSums(com_SS3_oc) >= 4 | colSums(com_SS4_oc) >= 4]
 Trait <- Trait_orig[which(colSums(com_SS1_oc) >= 4 | colSums(com_SS2_oc) >= 4 | colSums(com_SS3_oc) >= 4 | colSums(com_SS4_oc) >= 4),]
 
-
+com_SS1 <- com_SS1[,colSums(com_SS1) > 0]
+com_SS2 <- com_SS2[,colSums(com_SS2) > 0]
+com_SS3 <- com_SS3[,colSums(com_SS3) > 0]
+com_SS4 <- com_SS4[,colSums(com_SS4) > 0]
 
 ##################################################################################
 ##################################################################################
@@ -132,7 +146,39 @@ Trait_SS4_sum <- Trait_SS4[order(Trait_SS4$total_ab, decreasing = TRUE),]
 sum_com_SS4 <- sum_com_SS4[,order(Trait_SS4$total_ab, decreasing = TRUE)]
 
 
+Trait_SS1_orig <- Trait_orig[which(colSums(com_SS1_orig)>0),]
+Trait_SS2_orig <- Trait_orig[which(colSums(com_SS2_orig)>0),]
+Trait_SS3_orig <- Trait_orig[which(colSums(com_SS3_orig)>0),]
+Trait_SS4_orig <- Trait_orig[which(colSums(com_SS4_orig)>0),]
+
+
+com_SS1_orig <- com_SS1_orig[,colSums(com_SS1_orig) > 0]
+com_SS2_orig <- com_SS2_orig[,colSums(com_SS2_orig) > 0]
+com_SS3_orig <- com_SS3_orig[,colSums(com_SS3_orig) > 0]
+com_SS4_orig <- com_SS4_orig[,colSums(com_SS4_orig) > 0]
+
+
+Trait_SS1_orig$total_ab <- colSums(com_SS1_orig)
+Trait_SS2_orig$total_ab <- colSums(com_SS2_orig)
+Trait_SS3_orig$total_ab <- colSums(com_SS3_orig)
+Trait_SS4_orig$total_ab <- colSums(com_SS4_orig)
+
+sum_com_orig_SS1 <- summarize_community(com_SS1_orig, ID_SS1)
+sum_com_orig_SS2 <- summarize_community(com_SS2_orig, ID_SS2_3_4)
+sum_com_orig_SS3 <- summarize_community(com_SS3_orig, ID_SS2_3_4)
+sum_com_orig_SS4 <- summarize_community(com_SS4_orig, ID_SS2_3_4)
 
 
 
 
+Trait_SS1_sum_orig <- Trait_SS1_orig[order(Trait_SS1_orig$total_ab, decreasing = TRUE),]
+sum_com_orig_SS1 <- sum_com_orig_SS1[,order(Trait_SS1_orig$total_ab, decreasing = TRUE)]
+
+Trait_SS2_sum_orig <- Trait_SS2_orig[order(Trait_SS2_orig$total_ab, decreasing = TRUE),]
+sum_com_orig_SS2 <- sum_com_orig_SS2[,order(Trait_SS2_orig$total_ab, decreasing = TRUE)]
+
+Trait_SS3_sum_orig <- Trait_SS3_orig[order(Trait_SS3_orig$total_ab, decreasing = TRUE),]
+sum_com_orig_SS3 <- sum_com_orig_SS3[,order(Trait_SS3_orig$total_ab, decreasing = TRUE)]
+
+Trait_SS4_sum_orig <- Trait_SS4_orig[order(Trait_SS4_orig$total_ab, decreasing = TRUE),]
+sum_com_orig_SS4 <- sum_com_orig_SS4[,order(Trait_SS4_orig$total_ab, decreasing = TRUE)]
