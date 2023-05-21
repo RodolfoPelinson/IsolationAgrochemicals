@@ -49,41 +49,70 @@ com_amphibian_ab_SS4 <- com_amphibian_ab[SS == "4"]
 ```
 
 
-## First Survey (20 day)
+
+## All surveys
+
 
 First, lets see what is the best probability distribution to model the data
 
 ```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
 par(cex = 0.6)
 
-data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
 
 #Gaussian
-mod_amph_SS1_G <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = "gaussian", data = data_SS1)
-simulationResiduals_mod_amph_SS1_G <- simulateResiduals(fittedModel = mod_amph_SS1_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS1_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+mod_amphibian_G <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = "gaussian", data = data)
+simulationResiduals_mod_amphibian_G <- simulateResiduals(fittedModel = mod_amphibian_G, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_mod_amphibian_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 
 #Poisson
-mod_amph_SS1_P <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = "poisson", data = data_SS1)
-simulationResiduals_mod_amph_SS1_P <- simulateResiduals(fittedModel = mod_amph_SS1_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS1_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+mod_amphibian_P <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = "poisson", data = data)
+simulationResiduals_mod_amphibian_P <- simulateResiduals(fittedModel = mod_amphibian_P, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_mod_amphibian_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 
 #Negative Binomial
-mod_amph_SS1_NB <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = nbinom2(link = "log"), data = data_SS1)
-simulationResiduals_mod_amph_SS1_NB <- simulateResiduals(fittedModel = mod_amph_SS1_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS1_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+mod_amphibian_NB <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = nbinom2(link = "log"), data = data)
+simulationResiduals_mod_amphibian_NB <- simulateResiduals(fittedModel = mod_amphibian_NB, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+plotResiduals(simulationResiduals_mod_amphibian_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 
-AIC(mod_amph_SS1_G, mod_amph_SS1_P, mod_amph_SS1_NB)
+AIC(mod_amphibian_G, mod_amphibian_P, mod_amphibian_NB)
 ```
 It looks like the negative binomial distribution is the one to be chosen.
 
-
 Now the analysis
-
 ```{r, warning=FALSE}
+mod_amphibian_no_effect <- glmmTMB(com_amphibian_ab ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey <- glmmTMB(com_amphibian_ab ~ survey + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_treatments <- glmmTMB(com_amphibian_ab ~ isolation * treatments + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_treatments <- glmmTMB(com_amphibian_ab ~ survey + (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_i_treatments <- glmmTMB(com_amphibian_ab ~ survey * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+
+model_selection_amphibian <- aictab(list(mod_amphibian_no_effect,
+                                        mod_amphibian_survey,
+                                        mod_amphibian_treatments,
+                                        mod_amphibian_survey_treatments,
+                                        mod_amphibian_survey_i_treatments),
+                                        modnames = c("No Effect",
+                                                     "Survey",
+                                                     "Treatments",
+                                                     "Survey + Treatments",
+                                                     "Survey * Treatments"), sort = FALSE)
+
+model_selection_amphibian
+```
+It seems the effect of treatments are different in each survey.
+
+
+
+
+## First Survey (20 day)
+```{r, warning=FALSE}
+data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+
+
 mod_amph_SS1_no_effect <- glmmTMB(com_amphibian_ab_SS1 ~ 1, family = nbinom2(link = "log"), data = data_SS1)
 mod_amph_SS1_treatments <- glmmTMB(com_amphibian_ab_SS1 ~ treatments, family = nbinom2(link = "log"), data = data_SS1)
 mod_amph_SS1_isolation <- glmmTMB(com_amphibian_ab_SS1 ~ isolation, family = nbinom2(link = "log"), data = data_SS1)
@@ -131,11 +160,7 @@ legend(x = 1, y = 100, fill = c(col_control, col_pasture, col_sugarcane), legend
 
 
 ## Second Survey (40 day)
-
-
-```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
-par(cex = 0.6)
-
+```{r, warning=FALSE}
 data_SS2 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -143,32 +168,6 @@ data_SS2 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS2_G <- glmmTMB(com_amphibian_ab_SS2  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS2)
-simulationResiduals_mod_amph_SS2_G <- simulateResiduals(fittedModel = mod_amph_SS2_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS2_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Poisson
-mod_amph_SS2_P <- glmmTMB(com_amphibian_ab_SS2 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS2)
-simulationResiduals_mod_amph_SS2_P <- simulateResiduals(fittedModel = mod_amph_SS2_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS2_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Negative Binomial
-mod_amph_SS2_NB <- glmmTMB(com_amphibian_ab_SS2 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
-simulationResiduals_mod_amph_SS2_NB <- simulateResiduals(fittedModel = mod_amph_SS2_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS2_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-AIC(mod_amph_SS2_G, mod_amph_SS2_P, mod_amph_SS2_NB)
-```
-
-
-
-Now the analysis
-
-```{r, warning=FALSE}
 
 mod_amph_SS2_no_effect <- glmmTMB(com_amphibian_ab_SS2 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
 mod_amph_SS2_isolation <- glmmTMB(com_amphibian_ab_SS2 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
@@ -243,11 +242,7 @@ arrows(x0 = c(1, 5, 9) - 0.4,
 
 
 ## Third Survey (80 day)
-
-
-```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
-par(cex = 0.6)
-
+```{r, warning=FALSE}
 data_SS3 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -255,32 +250,6 @@ data_SS3 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS3_G <- glmmTMB(com_amphibian_ab_SS3  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS3)
-simulationResiduals_mod_amph_SS3_G <- simulateResiduals(fittedModel = mod_amph_SS3_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS3_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Poisson
-mod_amph_SS3_P <- glmmTMB(com_amphibian_ab_SS3 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS3)
-simulationResiduals_mod_amph_SS3_P <- simulateResiduals(fittedModel = mod_amph_SS3_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS3_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Negative Binomial
-mod_amph_SS3_NB <- glmmTMB(com_amphibian_ab_SS3 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
-simulationResiduals_mod_amph_SS3_NB <- simulateResiduals(fittedModel = mod_amph_SS3_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS3_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-AIC(mod_amph_SS3_G, mod_amph_SS3_P, mod_amph_SS3_NB)
-```
-
-
-
-Now the analysis
-
-```{r, warning=FALSE}
 
 mod_amph_SS3_no_effect <- glmmTMB(com_amphibian_ab_SS3 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
 mod_amph_SS3_isolation <- glmmTMB(com_amphibian_ab_SS3 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
@@ -364,10 +333,7 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
 
 ## Fourth Survey (160 day)
 
-
-```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
-par(cex = 0.6)
-
+```{r, warning=FALSE}
 data_SS4 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -375,32 +341,6 @@ data_SS4 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS4_G <- glmmTMB(com_amphibian_ab_SS4  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS4)
-simulationResiduals_mod_amph_SS4_G <- simulateResiduals(fittedModel = mod_amph_SS4_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS4_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Poisson
-mod_amph_SS4_P <- glmmTMB(com_amphibian_ab_SS4 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS4)
-simulationResiduals_mod_amph_SS4_P <- simulateResiduals(fittedModel = mod_amph_SS4_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS4_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-#Negative Binomial
-mod_amph_SS4_NB <- glmmTMB(com_amphibian_ab_SS4 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
-simulationResiduals_mod_amph_SS4_NB <- simulateResiduals(fittedModel = mod_amph_SS4_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-plotResiduals(simulationResiduals_mod_amph_SS4_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-
-AIC(mod_amph_SS4_G, mod_amph_SS4_P, mod_amph_SS4_NB)
-```
-
-
-
-Now the analysis
-
-```{r, warning=FALSE}
 
 mod_amph_SS4_no_effect <- glmmTMB(com_amphibian_ab_SS4 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
 mod_amph_SS4_isolation <- glmmTMB(com_amphibian_ab_SS4 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS4)

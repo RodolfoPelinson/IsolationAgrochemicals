@@ -75,7 +75,7 @@ Lets plot and analyse data including this species:
 
 How many latent variables do we need?
 ```{r, cache = TRUE, warning=FALSE}
-n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(1,2,3),
                                     formula = ~ treatments * isolation,
                                     row.eff = ~ (1|ID),
                                     y = com_herb_det_SS3, X = SS3_predictors,
@@ -83,7 +83,7 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -106,11 +106,11 @@ model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 5, seed = 1:5)
 
-model_herb_det_selection_SS3
+model_herb_det_selection_SS3$AICc_tab
 ```
-It seems like there are only aditive effects of isolation and agrochemical treatments.
+It seems like there are only additive effects of isolation and agrochemical treatments.
 
 Ploting the ordinations:
 ```{r, dpi=150, fig.width=9, fig.height=6, fig.align = 'center', warning=FALSE}
@@ -188,7 +188,7 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 
 ```
 It looks that zero latent variables is still the way to go.
@@ -211,9 +211,9 @@ model_herb_det_selection_SS3_excluding <- run_multiple_gllvm(formulas = list(~ t
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 5, seed = 1:5)
 
-model_herb_det_selection_SS3_excluding
+model_herb_det_selection_SS3_excluding$AICc_tab
 ```
 Now it looks like we have interactive effects of treatments!
 
@@ -272,23 +272,3 @@ Interesting, the ordinations are basically the same ones, however, the simple ad
 
 Why did this happened?
 This is likely due to the fact that we have realtively small communities, with about 10 or less species. In this case, the inclusion of one more species with little to no information regarding the effect of treatments on its abudance increasead the AIC values of more complex models. That makes sense since we are trying to estimate parameters of a complex model (isolation * agrochemicals) for a species with only one occurrence. In this case, it is clear that AIC will heavily penalyze complex models for these species. For example, see what happens to AIC values when we try to model only the abundance of Elachistocleis sp. as a function of treatments and do model selection. The AIC values of the model with the two-way interaction is heavely penalized.
-
-```{r, warning=FALSE, message=FALSE}
-library(glmmTMB)
-library(AICcmodavg)
-
-SS3_predictors <- data.frame(ID = ID_SS2_3_4,
-                             treatments = treatments_SS2_3_4,
-                             isolation = isolation_SS2_3_4)
-
-mod_no_effect <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ 1 + (1|ID), data = SS3_predictors)
-mod_treatments <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + (1|ID), data = SS3_predictors)
-mod_isolation <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ isolation + (1|ID), data = SS3_predictors)
-mod_aditive <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + isolation + (1|ID), data = SS3_predictors)
-mod_interaction <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments * isolation + (1|ID), data = SS3_predictors)
-
-aictab(list(mod_no_effect, mod_treatments, mod_isolation, mod_aditive, mod_interaction), modnames = c("No Effect","Treatments","Isolation","Aditive","Interaction"))
-
-```
-
-### Therefore, we chose to exclude really rare species from all our analyses of community structure.

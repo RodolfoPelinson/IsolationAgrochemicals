@@ -1,0 +1,199 @@
+---
+title: "Effect of pooling samples together"
+author: "Rodolfo Pelinson"
+date: "2023-05-19"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+This is a simulation of the abundance of one species occurring in 5 ponds assined to treatments A and B. Each of those ponds were sampled four times. 
+
+```{r}
+#Number of replicates
+n_replicates <- 5
+
+#Number of samples in each replicate
+n_samples <- 4
+
+#Simulating data
+ponds <- 1:(n_replicates*2)
+treatments <- c(rep("A",n_replicates) , rep("B",n_replicates))
+```
+
+
+The mean abundance on each sample of the treatment"A" will be 10 individuals, whereas samples from treatment "B" will have 14 more individuals on average. But, because we expect variability the mean abundance of each pond, we will draw the mean abundance of each pond from a negative binomial distribution with mean = 10 for ponds from treatment "A", and 24 for ponds from treatment "B".
+```{r}
+set.seed(4)
+
+#Mean abundance in treatment A (or the intercept)
+mean_abundance <- 10
+
+#Difference of mean abundance in treatment B to treatment A (or the effect size)
+diff_mean_abundance <- 14
+
+#Simulating the means in each replicate
+mu <- c(rnbinom(n = n_replicates, size = 2, mu = mean_abundance),
+        rnbinom(n = n_replicates, size = 2, mu = mean_abundance + diff_mean_abundance))
+
+```
+
+These are the mean abundances:
+```{r}
+data.frame(ponds, treatments, mean_ab = mu)
+```
+
+
+Now because we have four samples in each pond, we will draw the abundance in each sample from the mean of each pond also from a negative binomial distribution.
+```{r}
+#Simulating data from each sample
+ab <- list()
+ID <- list()
+treatment <- list()
+sample <- list()
+for(i in 1:length(ponds)){
+  ab[[i]] <- rnbinom(n = n_samples, mu = mu[i], size = 2)
+  ID[[i]] <- rep(ponds[i],n_samples)
+  treatment[[i]] <- rep(treatments[i],n_samples)
+  sample[[i]] <- c(1:4)
+}
+```
+
+
+This is how our data looks like:
+```{r}
+data <- data.frame(ID = unlist(ID), sample = unlist(sample),treatment = unlist(treatment), ab = unlist(ab))
+data
+```
+
+This is how it looks like if we add up all samples from each pond:
+```{r}
+data_pooled <- data.frame(ID = unlist(lapply(ID, unique)),
+                          treatment = unlist(lapply(treatment, unique)),
+                          ab = unlist(lapply(ab, sum)))
+data_pooled
+```
+
+
+Now, lets analise this dataset using a mixed modelling approach, where each sample is an observation and using pond ID as a random effect.
+```{r}
+library(glmmTMB)
+mod_mixed0 <- glmmTMB(ab ~ 1 + (1|ID), family = "nbinom2", data = data)
+mod_mixed1 <- glmmTMB(ab ~ treatment + (1|ID), family = "nbinom2", data = data)
+```
+
+Now we can do model selection based on AICc
+```{r}
+library(AICcmodavg)
+aictab(list(mod_mixed0, mod_mixed1), modnames = c("No_effect","Effect"))
+```
+It seems like we have evidence enough to say that there is a difference between treatmentw "A" and "B".
+
+We can also make Likelihood ratio tests and plot it:
+```{r}
+anova(mod_mixed0, mod_mixed1)
+boxplot(ab ~ treatment , data = data)
+```
+
+LRT points towards the same direction.
+
+But what about the dataset where we pooled samples together?
+```{r}
+mod0 <- glmmTMB(ab ~ 1 , family = "nbinom2", data = data_pooled)
+mod1 <- glmmTMB(ab ~ treatment , family = "nbinom2", data = data_pooled)
+
+aictab(list(mod0, mod1), modnames = c("No_effect","Effect"))
+anova(mod0, mod1)
+
+boxplot(ab ~ treatment , data = data_pooled)
+```
+
+Even though our boxplot looks beautiful, we don't have enough evidence to say that both treatments have different abundances according to model selection, and the effect is only marginally significant using LRT.
+
+
+We can repeat this process many times and see the % of times we would find evidence of the effect of treatments using model selectio and LRT:
+```{r}
+set.seed(1)
+
+aic_pooled <- list()
+aic_mixed <- list()
+anova_pooled <- list()
+anova_mixed <- list()
+
+for(j in 1:1000){
+  #Simulating the means in each replicate
+mu <- c(rnbinom(n = n_replicates, size = 2, mu = mean_abundance),
+        rnbinom(n = n_replicates, size = 2, mu = mean_abundance + diff_mean_abundance))
+
+#Simulating data from each sample
+ab <- list()
+ID <- list()
+treatment <- list()
+sample <- list()
+for(i in 1:length(ponds)){
+  ab[[i]] <- rnbinom(n = n_samples, mu = mu[i], size = 2)
+  ID[[i]] <- rep(ponds[i],n_samples)
+  treatment[[i]] <- rep(treatments[i],n_samples)
+  sample[[i]] <- c(1:4)
+}
+
+data <- data.frame(ID = unlist(ID), sample = unlist(sample),treatment = unlist(treatment), ab = unlist(ab))
+
+data_pooled <- data.frame(ID = unlist(lapply(ID, unique)),
+                          treatment = unlist(lapply(treatment, unique)),
+                          ab = unlist(lapply(ab, sum)))
+
+mod0 <- glmmTMB(ab ~ 1 , family = "nbinom2", data = data_pooled)
+mod1 <- glmmTMB(ab ~ treatment , family = "nbinom2", data = data_pooled)
+anova_pooled[[j]] <- anova(mod0, mod1)$`Pr(>Chisq)`[2]
+aictab_pooled <- aictab(list(mod0, mod1), modnames = c("No_effect","Effect"))
+if(aictab_pooled$Modnames[1] == "Effect" & aictab_pooled$Delta_AICc[2] >= 2){aic_pooled[[j]] <- "Evidence of Effect"}else{aic_pooled[[j]] <- "No Evidence"}
+
+
+mod_mixed0 <- glmmTMB(ab ~ 1 + (1|ID), family = "nbinom2", data = data)
+mod_mixed1 <- glmmTMB(ab ~ treatment + (1|ID), family = "nbinom2", data = data)
+anova_mixed[[j]] <- anova(mod_mixed0, mod_mixed1)$`Pr(>Chisq)`[2]
+aictab_mixed <- aictab(list(mod_mixed0, mod_mixed1), modnames = c("No_effect","Effect"))
+if(aictab_mixed$Modnames[1] == "Effect" & aictab_mixed$Delta_AICc[2] >= 2){aic_mixed[[j]] <- "Evidence of Effect"}else{aic_mixed[[j]] <- "No Evidence"}
+
+}
+
+
+
+```
+
+
+Lets see how many times we have evidence of effect of treatment according to model selection.
+
+Using mixed models
+```{r}
+length(aic_mixed[aic_mixed == "Evidence of Effect"])/length(aic_mixed)
+```
+
+Pooling samples together
+```{r}
+length(aic_pooled[aic_pooled == "Evidence of Effect"])/length(aic_pooled)
+```
+
+
+Now evidence from LRT:
+
+Using mixed models:
+```{r}
+length(anova_mixed[anova_mixed >= 0.05])/length(anova_mixed)
+```
+
+Pooling samples together:
+```{r}
+length(anova_pooled[anova_pooled >= 0.05])/length(anova_pooled)
+```
+
+#### Conclusion
+
+Values are not strongly different, but still, mixed models seem to be able to find evidence for the effect of treatment "B" more times than when we pool samples together. Especially in model selection using AICc!
+

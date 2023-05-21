@@ -72,7 +72,7 @@ com_predators_ab_SS3 <- com_predators_ab[SS == "3"]
 com_predators_ab_SS4 <- com_predators_ab[SS == "4"]
 ```
 
-## First Survey (20 day)
+## All surveys
 
 First, lets see what is the best probability distribution to model the
 data
@@ -80,60 +80,60 @@ data
 ``` r
 par(cex = 0.6)
 
-data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
 
 #Gaussian
-mod_pred_SS1_G <- glmmTMB(com_predators_ab_SS1 ~ isolation * treatments, family = "gaussian", data = data_SS1)
-simulationResiduals_mod_pred_SS1_G <- simulateResiduals(fittedModel = mod_pred_SS1_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS1_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_predators_G <- glmmTMB(com_predators_ab ~ isolation * treatments * survey + (1|ID), family = "gaussian", data = data)
+simulationResiduals_mod_predators_G <- simulateResiduals(fittedModel = mod_predators_G, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_predators_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_pred_SS1_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_predators_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-2.png" style="display: block; margin: auto;" />
 
 ``` r
 #Poisson
-mod_pred_SS1_P <- glmmTMB(com_predators_ab_SS1 ~ isolation * treatments, family = "poisson", data = data_SS1)
-simulationResiduals_mod_pred_SS1_P <- simulateResiduals(fittedModel = mod_pred_SS1_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS1_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_predators_P <- glmmTMB(com_predators_ab ~ isolation * treatments * survey  + (1|ID), family = "poisson", data = data)
+simulationResiduals_mod_predators_P <- simulateResiduals(fittedModel = mod_predators_P, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_predators_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-3.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_pred_SS1_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_predators_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-4.png" style="display: block; margin: auto;" />
 
 ``` r
 #Negative Binomial
-mod_pred_SS1_NB <- glmmTMB(com_predators_ab_SS1 ~ isolation * treatments, family = nbinom2(link = "log"), data = data_SS1)
-simulationResiduals_mod_pred_SS1_NB <- simulateResiduals(fittedModel = mod_pred_SS1_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS1_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_predators_NB <- glmmTMB(com_predators_ab ~ isolation * treatments * survey  + (1|ID), family = nbinom2(link = "log"), data = data)
+simulationResiduals_mod_predators_NB <- simulateResiduals(fittedModel = mod_predators_NB, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_predators_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-5.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_pred_SS1_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_predators_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-4-6.png" style="display: block; margin: auto;" />
 
 ``` r
-AIC(mod_pred_SS1_G, mod_pred_SS1_P, mod_pred_SS1_NB)
+AIC(mod_predators_G, mod_predators_P, mod_predators_NB)
 ```
 
-    ##                 df      AIC
-    ## mod_pred_SS1_G  10 268.5282
-    ## mod_pred_SS1_P   9 273.3386
-    ## mod_pred_SS1_NB 10 242.4323
+    ##                  df      AIC
+    ## mod_predators_G  38 4220.840
+    ## mod_predators_P  37 4703.199
+    ## mod_predators_NB 38 3496.480
 
 It looks like the negative binomial distribution is the one to be
 chosen.
@@ -141,6 +141,44 @@ chosen.
 Now the analysis
 
 ``` r
+mod_predators_no_effect <- glmmTMB(com_predators_ab ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_predators_survey <- glmmTMB(com_predators_ab ~ survey+ (1|ID), family = nbinom2(link = "log"), data = data)
+mod_predators_treatments <- glmmTMB(com_predators_ab ~ isolation * treatments+ (1|ID), family = nbinom2(link = "log"), data = data)
+mod_predators_survey_treatments <- glmmTMB(com_predators_ab ~ survey + (isolation * treatments)+ (1|ID), family = nbinom2(link = "log"), data = data)
+mod_predators_survey_i_treatments <- glmmTMB(com_predators_ab ~ survey * (isolation * treatments)+ (1|ID), family = nbinom2(link = "log"), data = data)
+
+model_selection_predators <- aictab(list(mod_predators_no_effect,
+                                        mod_predators_survey,
+                                        mod_predators_treatments,
+                                        mod_predators_survey_treatments,
+                                        mod_predators_survey_i_treatments),
+                                        modnames = c("No Effect",
+                                                     "Survey",
+                                                     "Treatments",
+                                                     "Survey + Treatments",
+                                                     "Survey * Treatments"), sort = FALSE)
+
+model_selection_predators
+```
+
+    ## 
+    ## Model selection based on AICc:
+    ## 
+    ##                      K    AICc Delta_AICc AICcWt       LL
+    ## No Effect            3 3796.84     294.93      0 -1895.40
+    ## Survey               6 3620.33     118.42      0 -1804.09
+    ## Treatments          11 3792.42     290.51      0 -1884.98
+    ## Survey + Treatments 14 3608.47     106.56      0 -1789.87
+    ## Survey * Treatments 38 3501.91       0.00      1 -1710.24
+
+It seems that the effect of treatments are different in each survey.
+
+## First Survey (20 day)
+
+``` r
+data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+
+
 mod_pred_SS1_no_effect <- glmmTMB(com_predators_ab_SS1 ~ 1, family = nbinom2(link = "log"), data = data_SS1)
 mod_pred_SS1_treatments <- glmmTMB(com_predators_ab_SS1 ~ treatments, family = nbinom2(link = "log"), data = data_SS1)
 mod_pred_SS1_isolation <- glmmTMB(com_predators_ab_SS1 ~ isolation, family = nbinom2(link = "log"), data = data_SS1)
@@ -195,74 +233,17 @@ axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 
 legend(x = 7, y = 20, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
 ```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS2 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
                        treatments_contsug_past = treatments_SS2_3_4_contsug_past)
 
-#Gaussian
-mod_pred_SS2_G <- glmmTMB(com_predators_ab_SS2  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS2)
-simulationResiduals_mod_pred_SS2_G <- simulateResiduals(fittedModel = mod_pred_SS2_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS2_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS2_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_pred_SS2_P <- glmmTMB(com_predators_ab_SS2 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS2)
-simulationResiduals_mod_pred_SS2_P <- simulateResiduals(fittedModel = mod_pred_SS2_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS2_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS2_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_pred_SS2_NB <- glmmTMB(com_predators_ab_SS2 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
-simulationResiduals_mod_pred_SS2_NB <- simulateResiduals(fittedModel = mod_pred_SS2_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS2_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS2_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-7-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_pred_SS2_G, mod_pred_SS2_P, mod_pred_SS2_NB)
-```
-
-    ##                 df       AIC
-    ## mod_pred_SS2_G  11 1160.8242
-    ## mod_pred_SS2_P  10  962.2339
-    ## mod_pred_SS2_NB 11  813.5906
-
-Now the analysis
-
-``` r
 mod_pred_SS2_no_effect <- glmmTMB(com_predators_ab_SS2 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
 mod_pred_SS2_isolation <- glmmTMB(com_predators_ab_SS2 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
 mod_pred_SS2_treatments <- glmmTMB(com_predators_ab_SS2 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
@@ -360,69 +341,12 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
 ## Third Survey (80 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS3 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
                        treatments_contsug_past = treatments_SS2_3_4_contsug_past)
 
-#Gaussian
-mod_pred_SS3_G <- glmmTMB(com_predators_ab_SS3  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS3)
-simulationResiduals_mod_pred_SS3_G <- simulateResiduals(fittedModel = mod_pred_SS3_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS3_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS3_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_pred_SS3_P <- glmmTMB(com_predators_ab_SS3 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS3)
-simulationResiduals_mod_pred_SS3_P <- simulateResiduals(fittedModel = mod_pred_SS3_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS3_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS3_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_pred_SS3_NB <- glmmTMB(com_predators_ab_SS3 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
-simulationResiduals_mod_pred_SS3_NB <- simulateResiduals(fittedModel = mod_pred_SS3_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS3_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS3_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-11-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_pred_SS3_G, mod_pred_SS3_P, mod_pred_SS3_NB)
-```
-
-    ##                 df      AIC
-    ## mod_pred_SS3_G  11 1420.743
-    ## mod_pred_SS3_P  10 1733.105
-    ## mod_pred_SS3_NB 11 1275.952
-
-Now the analysis
-
-``` r
 mod_pred_SS3_no_effect <- glmmTMB(com_predators_ab_SS3 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
 mod_pred_SS3_isolation <- glmmTMB(com_predators_ab_SS3 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
 mod_pred_SS3_treatments <- glmmTMB(com_predators_ab_SS3 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
@@ -518,74 +442,17 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
        code = 0, col = c("grey25","grey0","grey50",   "grey25","grey0","grey50",   "grey25","grey0","grey50"))
 ```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS4 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
                        treatments_contsug_past = treatments_SS2_3_4_contsug_past)
 
-#Gaussian
-mod_pred_SS4_G <- glmmTMB(com_predators_ab_SS4  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS4)
-simulationResiduals_mod_pred_SS4_G <- simulateResiduals(fittedModel = mod_pred_SS4_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS4_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS4_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_pred_SS4_P <- glmmTMB(com_predators_ab_SS4 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS4)
-simulationResiduals_mod_pred_SS4_P <- simulateResiduals(fittedModel = mod_pred_SS4_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS4_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS4_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_pred_SS4_NB <- glmmTMB(com_predators_ab_SS4 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
-simulationResiduals_mod_pred_SS4_NB <- simulateResiduals(fittedModel = mod_pred_SS4_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_pred_SS4_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_pred_SS4_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_pred_SS4_G, mod_pred_SS4_P, mod_pred_SS4_NB)
-```
-
-    ##                 df      AIC
-    ## mod_pred_SS4_G  11 1242.910
-    ## mod_pred_SS4_P  10 1411.732
-    ## mod_pred_SS4_NB 11 1149.939
-
-Now the analysis
-
-``` r
 mod_pred_SS4_no_effect <- glmmTMB(com_predators_ab_SS4 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
 mod_pred_SS4_isolation <- glmmTMB(com_predators_ab_SS4 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
 mod_pred_SS4_treatments <- glmmTMB(com_predators_ab_SS4 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
@@ -635,4 +502,4 @@ axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line 
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 ```
 
-<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Predators_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />

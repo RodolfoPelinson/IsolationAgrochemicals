@@ -89,10 +89,75 @@ com_herb_det_SS3 <- com_SS3[,Trait_SS3$trophic == "consumer"]
 com_herb_det_SS4 <- com_SS4[,Trait_SS4$trophic == "consumer"]
 ```
 
-## First Survey (20 day)
+## All surveys
 
 We always used a negative binomial distribution to model species
 abundances.
+
+``` r
+predictors <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS)
+```
+
+Number of latent variables:
+
+``` r
+n_latent_tab <- run_multiple_lv(formula = ~ treatments * isolation * survey,
+                                    num.lv = c(0,1,2,3),
+                                    row.eff = ~ (1|ID),
+                                    y = com_herb_det, X = predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+n_latent_tab$AICc_tab
+```
+
+    ##   model     AICc delta_AICc  df nobs
+    ## 1     0 15057.84    0.00000 371 5850
+    ## 2     1 15080.69   22.84635 381 5850
+    ## 3     2 15101.32   43.47963 390 5850
+    ## 4     3 15119.72   61.87753 398 5850
+
+It looks that zero latent variables is the way to go. This will repeat
+itself for the next cases.
+
+Model selection of effects:
+
+``` r
+model_herb_det_selection <- run_multiple_gllvm(formulas = list(    ~ survey,
+                                                                    ~ treatments * isolation,
+                                                                    ~ survey + (treatments * isolation),
+                                                                    ~ survey * (treatments * isolation)),
+                                                    names = c("Survey",
+                                                              "Isolation * Treatments",
+                                                              "Survey + (Isolation * Treatments)",
+                                                              "Survey * (Isolation * Treatments)"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID),
+                                                    X = predictors,
+                                                    y = com_herb_det,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_herb_det_selection$AICc_tab
+```
+
+    ##                               model     AICc delta_AICc  df nobs
+    ## 1                         No Effect 16565.43  1507.5820  21 5850
+    ## 2                            Survey 15487.89   430.0449  51 5850
+    ## 3            Isolation * Treatments 16333.53  1275.6895 101 5850
+    ## 4 Survey + (Isolation * Treatments) 15218.23   160.3870 131 5850
+    ## 5 Survey * (Isolation * Treatments) 15057.84     0.0000 371 5850
+
+It seems that the effect of treatments is different in each survey.
+
+## First Survey (20 day)
 
 ``` r
 SS1_predictors <- data.frame(treatments = treatments_SS1,
@@ -109,9 +174,9 @@ n_latent_tab_SS1 <- run_multiple_lv(formula = ~ treatments * isolation,
                                     y = com_herb_det_SS1, X = SS1_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20, starting.val = 0)
+                                    n.init = 10, seed = 1:10, starting.val = 0)
 
-n_latent_tab_SS1
+n_latent_tab_SS1$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
@@ -140,9 +205,9 @@ model_herb_det_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     y = com_herb_det_SS1,
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20, starting.val = 0)
+                                                    n.init = 10, seed = 1:10, starting.val = 0)
 
-model_herb_det_selection_SS1
+model_herb_det_selection_SS1$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -169,9 +234,9 @@ model_herb_det_selection_SS1_post_hoc_isolation <- run_multiple_gllvm(formulas =
                                                                       y = com_herb_det_SS1,
                                                                       family = "negative.binomial",
                                                                       method = "VA",
-                                                                      n.init = 10, seed = 11:20)
+                                                                      n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS1_post_hoc_isolation
+model_herb_det_selection_SS1_post_hoc_isolation$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -282,7 +347,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 
 Now the same plots but for isolation:
 
@@ -306,7 +371,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
 
 Ploting species coefficients and their confidence intervals based on the
 effects identified in the analysis. The script for extracting these
@@ -337,7 +402,7 @@ My_coefplot(effect_SS1_30480,
             cex.axis = 1, cex.main = 1, font = c(3,3,3,1))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-18-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
@@ -361,16 +426,16 @@ n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     y = com_herb_det_SS2, X = SS2_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS2
+n_latent_tab_SS2$AICc_tab
 ```
 
     ##   model     AICc delta_AICc  df nobs
     ## 1     0 3459.311    0.00000  91 1620
-    ## 2     1 3479.650   20.33891 100 1620
+    ## 2     1 3479.650   20.33895 100 1620
     ## 3     2 3497.933   38.62252 108 1620
-    ## 4     3 3514.091   54.78015 115 1620
+    ## 4     3 3514.091   54.78012 115 1620
 
 It looks that zero latent variables is the way to go.
 
@@ -393,9 +458,9 @@ model_herb_det_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS2
+model_herb_det_selection_SS2$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -426,8 +491,8 @@ model_herb_det_selection_SS2_post_hoc_treatments <- run_multiple_gllvm(formulas 
                                                                         row.eff = ~ (1|ID),
                                                                         family = "negative.binomial",
                                                                         method = "VA",
-                                                                        n.init = 10, seed = 11:20)
-model_herb_det_selection_SS2_post_hoc_treatments
+                                                                        n.init = 10, seed = 1:10)
+model_herb_det_selection_SS2_post_hoc_treatments$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -456,8 +521,8 @@ model_herb_det_selection_SS2_post_hoc_isolation <- run_multiple_gllvm(formulas =
                                                                       row.eff = ~ (1|ID),
                                                                       family = "negative.binomial",
                                                                       method = "VA",
-                                                                      n.init = 10, seed = 11:20)
-model_herb_det_selection_SS2_post_hoc_isolation
+                                                                      n.init = 10, seed = 1:10)
+model_herb_det_selection_SS2_post_hoc_isolation$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -476,7 +541,7 @@ SS2_predictors <- data.frame(treatments = treatments_SS1,
 sum_com_herb_det_SS2 <- sum_com_SS2[,Trait_SS2_sum$trophic == "consumer"]
 
 col_SS2 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS2))
-col_SS2[Trait_SS2$trait[Trait_SS2$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS2[Trait_SS2_sum$trait[Trait_SS2_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 fit_SS2_plot <- gllvm(sum_com_herb_det_SS2,
                       formula = ~ 1,
@@ -520,7 +585,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-24-1.png" style="display: block; margin: auto;" />
 
 Now the coefficients for the effects observed.
 
@@ -538,7 +603,7 @@ My_coefplot(mles = effect_SS2_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,1,3,3,3,3,3))#, at.xaxis = c(0, -10, -20, -30, -40, -50),break.axis = c(-25,-38))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-25-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -560,7 +625,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
 
 Now the coefficients for the effects observed.
 
@@ -592,7 +657,7 @@ My_coefplot(effect_SS2_30_480,
             cex.axis = 1, cex.main = 1, font = c(3,3,3,1,1,3,3,3,1))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-24-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-27-1.png" style="display: block; margin: auto;" />
 
 ## Third Survey (80 day)
 
@@ -616,15 +681,15 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     y = com_herb_det_SS3, X = SS3_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 ```
 
     ##   model     AICc delta_AICc  df nobs
     ## 1     0 5990.175    0.00000 101 1800
-    ## 2     1 6012.770   22.59568 111 1800
-    ## 3     2 6032.305   42.13026 120 1800
+    ## 2     1 6012.770   22.59567 111 1800
+    ## 3     2 6032.330   42.15493 120 1800
     ## 4     3 6050.812   60.63763 128 1800
 
 It looks that zero latent variables is the way to go.
@@ -648,9 +713,9 @@ model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS3
+model_herb_det_selection_SS3$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc  df nobs
@@ -684,11 +749,11 @@ model_herb_det_selection_SS3_post_hoc_treatments_30 <- run_multiple_gllvm(formul
                                                                        row.eff = ~ (1|ID),
                                                                        family = "negative.binomial",
                                                                        method = "VA",
-                                                                       n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                       n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                  maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
 
-model_herb_det_selection_SS3_post_hoc_treatments_30
+model_herb_det_selection_SS3_post_hoc_treatments_30$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -716,10 +781,10 @@ model_herb_det_selection_SS3_post_hoc_treatments_120 <- run_multiple_gllvm(formu
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_treatments_120
+model_herb_det_selection_SS3_post_hoc_treatments_120$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -747,10 +812,10 @@ model_herb_det_selection_SS3_post_hoc_treatments_480 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_treatments_480
+model_herb_det_selection_SS3_post_hoc_treatments_480$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -783,10 +848,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_control <- run_multiple_gllvm(fo
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_control
+model_herb_det_selection_SS3_post_hoc_isolation_control$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -811,10 +876,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_pasture <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_pasture
+model_herb_det_selection_SS3_post_hoc_isolation_pasture$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -839,10 +904,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_sugarcane <- run_multiple_gllvm(
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_sugarcane
+model_herb_det_selection_SS3_post_hoc_isolation_sugarcane$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -864,7 +929,7 @@ SS3_predictors <- data.frame(treatments = treatments_SS1,
 sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "consumer"]
 
 col_SS3 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS3))
-col_SS3[Trait_SS3$trait[Trait_SS3$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS3[Trait_SS3_sum$trait[Trait_SS3_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 
 
@@ -906,7 +971,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-30-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-33-1.png" style="display: block; margin: auto;" />
 
 Now coefficients
 
@@ -939,7 +1004,7 @@ My_coefplot(mles = effect_SS3_480_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,3,3,1,3,3,3,3,1,3))#, at.xaxis = c(10,0,-10, -20,-30, -40, -130),break.axis = c(-40,-480))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-31-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-34-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -961,7 +1026,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-35-1.png" style="display: block; margin: auto;" />
 
 Now coefficients
 
@@ -980,7 +1045,7 @@ My_coefplot(mles = effect_SS3_30_120_480_control,
 par(mar = c(4,8,2,.5), mfrow = c(1,3), cex = 0.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-33-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-36-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #Pasture
@@ -1007,7 +1072,7 @@ My_coefplot(mles = effect_SS3_pasture_120_480,
             cex.axis = 1, cex.main = 1, font = c(1,3,3,1,3,3,3,3,1,3))#, at.xaxis = c(4,2,0,-2,-4,-6, -516), break.axis = c(-5,-514))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-33-2.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-36-2.png" style="display: block; margin: auto;" />
 
 ``` r
 #Sugarcane
@@ -1020,7 +1085,7 @@ My_coefplot(mles = effect_SS3_30_120_480_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,3,3,1,3,3,3,3,1,3), at.xaxis = c(0, -10, -20, -30, -40, -50),break.axis = c(-25,-38))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-33-3.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-36-3.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
@@ -1044,14 +1109,14 @@ n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     y = com_herb_det_SS4, X = SS4_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS4
+n_latent_tab_SS4$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
     ## 1     0 4583.193    0.00000 71 1260
-    ## 2     1 4599.022   15.82923 78 1260
+    ## 2     1 4599.022   15.82921 78 1260
     ## 3     2 4612.740   29.54720 84 1260
     ## 4     3 4624.279   41.08631 89 1260
 
@@ -1076,9 +1141,9 @@ model_herb_det_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                    row.eff = ~ (1|ID),
                                                    family = "negative.binomial",
                                                    method = "VA",
-                                                   n.init = 10, seed = 11:20)
+                                                   n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS4
+model_herb_det_selection_SS4$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -1117,10 +1182,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_30 <- run_multiple_gllvm(formul
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_30
+model_herb_det_selection_SS4_post_hoc_treatments_30$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -1148,10 +1213,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_120 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_120
+model_herb_det_selection_SS4_post_hoc_treatments_120$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -1179,10 +1244,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_480 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_480
+model_herb_det_selection_SS4_post_hoc_treatments_480$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -1215,10 +1280,10 @@ model_herb_det_selection_SS4_post_hoc_isolation_control <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_isolation_control
+model_herb_det_selection_SS4_post_hoc_isolation_control$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -1243,10 +1308,10 @@ model_herb_det_selection_SS4_post_hoc_isolation_pasture <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_isolation_pasture
+model_herb_det_selection_SS4_post_hoc_isolation_pasture$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -1271,14 +1336,14 @@ model_herb_det_selection_SS4_post_hoc_isolation_sugarcane <- run_multiple_gllvm(
                                                                                 row.eff = ~ (1|ID),
                                                                                 family = "negative.binomial",
                                                                                 method = "VA",
-                                                                                n.init = 10, seed = 11:20, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                                n.init = 10, seed = 1:10, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                             maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 ```
 
     ## Standard errors for parameters could not be calculated, due to singular fit.
 
 ``` r
-model_herb_det_selection_SS4_post_hoc_isolation_sugarcane
+model_herb_det_selection_SS4_post_hoc_isolation_sugarcane$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -1295,19 +1360,21 @@ Ploting it:
 
 ``` r
 SS4_predictors <- data.frame(treatments = treatments_SS1,
-                             isolation = isolation_SS1)
+                             isolation = isolation_SS1,
+                             treatments_contpast_sug = treatments_contpast_sug)
 
 sum_com_herb_det_SS4 <- sum_com_SS4[,Trait_SS4_sum$trophic == "consumer"]
 
 col_SS4 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS4))
-col_SS4[Trait_SS4$trait[Trait_SS4$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS4[Trait_SS4_sum$trait[Trait_SS4_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 
 fit_SS4_plot <- gllvm(sum_com_herb_det_SS4,
                       formula = ~ 1,
                       family = "negative.binomial",
+                      #row.eff = "random",
                       method = "VA",
-                      n.init = 10, num.lv = 2, seed = 11:20)
+                      n.init = 10, num.lv = 2, seed = 1:10)
 
 
 scaled_lvs <- get_scaled_lvs(fit_SS4_plot, alpha = 0.5)
@@ -1340,7 +1407,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-39-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-42-1.png" style="display: block; margin: auto;" />
 
 Plotting coefficients:
 
@@ -1372,7 +1439,7 @@ My_coefplot(mles = effect_SS4_30_pasture_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,1,3,3,3,3,3))#, at.xaxis = c(5,0,-5,-10, -510),break.axis = c(-10,-505))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-40-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-43-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #120
@@ -1385,7 +1452,7 @@ My_coefplot(mles = effect_SS4_120_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,1,3,3,3,3,3), at.xaxis = c(0,-7,-14, -21, - 28))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-40-2.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-43-2.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -1407,7 +1474,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.bg  = c("cyan3","darkolivegreen3"), bty = "n", pt.cex   = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-41-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-44-1.png" style="display: block; margin: auto;" />
 
 Plotting coefficients:
 
@@ -1426,7 +1493,7 @@ My_coefplot(mles = effect_SS4_30_120_480_control,
 par(mar = c(4,8,2,.5), mfrow = c(1,3), cex = 0.5)
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-42-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-45-1.png" style="display: block; margin: auto;" />
 
 ``` r
 My_coefplot(mles = effect_SS4_pasture_30_120,
@@ -1450,7 +1517,7 @@ My_coefplot(mles = effect_SS4_pasture_120_480,
             cex.axis = 1, cex.main = 1, font = c(1,1,3,3,3,3,3), at.xaxis = c(15,10,5,0,-5,-10, -150), break.axis = c(-10,-145))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-42-2.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-45-2.png" style="display: block; margin: auto;" />
 
 ``` r
 #Sugarcane
@@ -1463,4 +1530,4 @@ My_coefplot(mles = effect_SS4_30_120_480_sugar_cane,
             cex.axis = 1, cex.main = 1, font = c(1,1,3,3,3,3,3))#, at.xaxis = c(0, -10, -20, -30, -40, -50),break.axis = c(-25,-38))
 ```
 
-<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-42-3.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-45-3.png" style="display: block; margin: auto;" />

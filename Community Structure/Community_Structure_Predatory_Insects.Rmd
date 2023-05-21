@@ -32,11 +32,13 @@ setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/gllvm_AICc_tab.R")
 ```
 
+
 This one is to run multiple gllvms with different number of latent variables and perform model selection. Its useful to find the ideal number of latent variables necessary to accurately account for correlations (dependencies) in species co-occurrences not caused by our treatments.
 ```{r}
 setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/run_multiple_lv.R")
 ```
+
 
 This is to automate running multiple gllvms and perform model selection
 ```{r}
@@ -73,6 +75,62 @@ com_predators_SS4 <- com_SS4[,Trait_SS4$trophic == "predator"]
 ```
 
 
+## All surveys
+
+We always used a negative binomial distribution to model species abundances.
+
+
+```{r}
+predictors <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS)
+```
+
+
+Number of latent variables:
+```{r, warning=FALSE, cache = TRUE}
+n_latent_tab <- run_multiple_lv(formula = ~ treatments * isolation * survey,
+                                    num.lv = c(0,1,2,3),
+                                    row.eff = ~ (1|ID),
+                                    y = com_predators, X = predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+n_latent_tab$AICc_tab
+
+```
+It looks that zero latent variables is the way to go. This will repeat itself for the next cases.
+
+
+Model selection of effects:
+```{r, warning=FALSE, cache = TRUE}
+model_predators_selection <- run_multiple_gllvm(formulas = list(    ~ survey,
+                                                                    ~ treatments * isolation,
+                                                                    ~ survey + (treatments * isolation),
+                                                                    ~ survey * (treatments * isolation)),
+                                                    names = c("Survey",
+                                                              "Isolation * Treatments",
+                                                              "Survey + (Isolation * Treatments)",
+                                                              "Survey * (Isolation * Treatments)"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID),
+                                                    X = predictors,
+                                                    y = com_predators,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_predators_selection$AICc_tab
+```
+It seems that the effect of treatments is different in each survey.
+
+
+
+
 ## First Survey (20 day)
 
 We always used a negative binomial distribution to model species abundances.
@@ -93,14 +151,14 @@ n_latent_tab_SS1 <- run_multiple_lv(formula = ~ treatments * isolation,
                                    method = "VA",
                                    n.init = 10, seed = 11:20, starting.val = 0)
 
-n_latent_tab_SS1
+n_latent_tab_SS1$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go. This will repeat itself for the next cases.
 
 
 Model selection of effects:
-```{r, warning=FALSE}
+```{r, warning=FALSE, cache = TRUE}
 model_predators_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments,
                                    ~ isolation,
                                    ~ treatments + isolation,
@@ -117,7 +175,7 @@ model_predators_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments
                    method = "VA",
                    n.init = 10, seed = 11:20, starting.val = 0)
 
-model_predators_selection_SS1
+model_predators_selection_SS1$AICc_tab
 ```
 It seems there was no effect on community structure for the first survey.
 
@@ -292,7 +350,7 @@ n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                 method = "VA",
                                 n.init = 10, seed = 11:20)
 
-n_latent_tab_SS2
+n_latent_tab_SS2$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -318,7 +376,7 @@ model_predators_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
 
-model_predators_selection_SS2
+model_predators_selection_SS2$AICc_tab
 ```
 It seems there is an effect of treatments.
 
@@ -341,7 +399,7 @@ model_predators_selection_SS2_post_hoc_treatments <- run_multiple_gllvm(formulas
                                                     family = "negative.binomial",
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
-model_predators_selection_SS2_post_hoc_treatments
+model_predators_selection_SS2_post_hoc_treatments$AICc_tab
 ```
 So, communities in the sugarcane treatment are different from the others.
 
@@ -492,7 +550,7 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -518,7 +576,7 @@ model_predators_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
 
-model_predators_selection_SS3
+model_predators_selection_SS3$AICc_tab
 ```
 It seems like there are main effects of treatments and isolation.
 
@@ -562,7 +620,7 @@ model_predators_selection_SS3_post_hoc_isolation <- run_multiple_gllvm(formulas 
                                                                         family = "negative.binomial",
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
-model_predators_selection_SS3_post_hoc_isolation
+model_predators_selection_SS3_post_hoc_isolation$AICc_tab
 ```
 480m is different from 30 and 120m.
 
@@ -731,7 +789,7 @@ n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS4
+n_latent_tab_SS4$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -757,7 +815,7 @@ model_predators_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
 
-model_predators_selection_SS4
+model_predators_selection_SS4$AICc_tab
 ```
 It seems like there are main effects of treatments and isolation.
 
@@ -780,7 +838,7 @@ model_predators_selection_SS4_post_hoc_treatments <- run_multiple_gllvm(formulas
                                                                         family = "negative.binomial",
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
-model_predators_selection_SS4_post_hoc_treatments
+model_predators_selection_SS4_post_hoc_treatments$AICc_tab
 ```
 It seems that we only have enough evidence so say that sugarcane communities are different from control.
 
@@ -801,7 +859,7 @@ model_predators_selection_SS4_post_hoc_isolation <- run_multiple_gllvm(formulas 
                                                                        family = "negative.binomial",
                                                                        method = "VA",
                                                                        n.init = 10, seed = 11:20)
-model_predators_selection_SS4_post_hoc_isolation
+model_predators_selection_SS4_post_hoc_isolation$AICc_tab
 ```
 All levels are different.
 
@@ -824,7 +882,7 @@ fit_SS4_plot <- gllvm(sum_com_predators_SS4, #X = data.frame(ID = ID_SS2_3_4),
                       formula = ~ 1,
                       family = "negative.binomial",
                       method = "VA",
-                      #row.eff = ~ (1|ID),
+                      #row.eff = "random",
                       n.init = 10, num.lv = 2, seed = 11:20)
 
 

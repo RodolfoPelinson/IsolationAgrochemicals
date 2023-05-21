@@ -72,10 +72,64 @@ com_herb_det_SS3 <- com_SS3[,Trait_SS3$trophic == "consumer"]
 com_herb_det_SS4 <- com_SS4[,Trait_SS4$trophic == "consumer"]
 ```
 
+## All surveys
+
+We always used a negative binomial distribution to model species abundances.
+
+
+```{r}
+predictors <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS)
+```
+
+
+Number of latent variables:
+```{r, warning=FALSE, chache = TRUE}
+n_latent_tab <- run_multiple_lv(formula = ~ treatments * isolation * survey,
+                                    num.lv = c(0,1,2,3),
+                                    row.eff = ~ (1|ID),
+                                    y = com_herb_det, X = predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+n_latent_tab$AICc_tab
+
+```
+It looks that zero latent variables is the way to go. This will repeat itself for the next cases.
+
+
+Model selection of effects:
+```{r, warning=FALSE, cache = TRUE}
+model_herb_det_selection <- run_multiple_gllvm(formulas = list(    ~ survey,
+                                                                    ~ treatments * isolation,
+                                                                    ~ survey + (treatments * isolation),
+                                                                    ~ survey * (treatments * isolation)),
+                                                    names = c("Survey",
+                                                              "Isolation * Treatments",
+                                                              "Survey + (Isolation * Treatments)",
+                                                              "Survey * (Isolation * Treatments)"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID),
+                                                    X = predictors,
+                                                    y = com_herb_det,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_herb_det_selection$AICc_tab
+```
+It seems that the effect of treatments is different in each survey.
+
+
+
 
 ## First Survey (20 day)
 
-We always used a negative binomial distribution to model species abundances.
 
 ```{r}
 SS1_predictors <- data.frame(treatments = treatments_SS1,
@@ -93,9 +147,9 @@ n_latent_tab_SS1 <- run_multiple_lv(formula = ~ treatments * isolation,
                                     y = com_herb_det_SS1, X = SS1_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20, starting.val = 0)
+                                    n.init = 10, seed = 1:10, starting.val = 0)
 
-n_latent_tab_SS1
+n_latent_tab_SS1$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go. This will repeat itself for the next cases.
@@ -117,9 +171,9 @@ model_herb_det_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     y = com_herb_det_SS1,
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20, starting.val = 0)
+                                                    n.init = 10, seed = 1:10, starting.val = 0)
 
-model_herb_det_selection_SS1
+model_herb_det_selection_SS1$AICc_tab
 ```
 It seems that isolation is important.
 
@@ -137,9 +191,9 @@ model_herb_det_selection_SS1_post_hoc_isolation <- run_multiple_gllvm(formulas =
                                                                       y = com_herb_det_SS1,
                                                                       family = "negative.binomial",
                                                                       method = "VA",
-                                                                      n.init = 10, seed = 11:20)
+                                                                      n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS1_post_hoc_isolation
+model_herb_det_selection_SS1_post_hoc_isolation$AICc_tab
 
 ```
 30m is different from 120 and 480m.
@@ -313,23 +367,23 @@ SS2_predictors <- data.frame(ID = ID_SS2_3_4,
 
 
 Number of latent variables:
-```{r, cache = TRUE, warning=FALSE}
+```{r, cache = FALSE, warning=FALSE}
 n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     formula = ~ treatments * isolation,
                                     row.eff = ~ (1|ID),
                                     y = com_herb_det_SS2, X = SS2_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS2
+n_latent_tab_SS2$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
 
 
 Model selection of effects:
-```{r, cache = TRUE, warning=FALSE}
+```{r, cache = FALSE, warning=FALSE}
 model_herb_det_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                                     ~ isolation,
                                                                     ~ treatments + isolation,
@@ -346,14 +400,14 @@ model_herb_det_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS2
+model_herb_det_selection_SS2$AICc_tab
 ```
 It seems there are main effects of treatments and isolation.
 
 Lets look at pairwise differences for treatments:
-```{r, cache = TRUE, warning=FALSE}
+```{r, cache = FALSE, warning=FALSE}
 model_herb_det_selection_SS2_post_hoc_treatments <- run_multiple_gllvm(formulas = list(~ treatments + isolation,
                                                                                         ~ treatments_contpast_sug + isolation,
                                                                                         ~ treatments_cont_pastsug + isolation,
@@ -370,13 +424,13 @@ model_herb_det_selection_SS2_post_hoc_treatments <- run_multiple_gllvm(formulas 
                                                                         row.eff = ~ (1|ID),
                                                                         family = "negative.binomial",
                                                                         method = "VA",
-                                                                        n.init = 10, seed = 11:20)
-model_herb_det_selection_SS2_post_hoc_treatments
+                                                                        n.init = 10, seed = 1:10)
+model_herb_det_selection_SS2_post_hoc_treatments$AICc_tab
 ```
 So, communities in the sugarcane treatment are different from the others.
 
 Now isolation:
-```{r, cache = TRUE, warning=FALSE}
+```{r, cache = FALSE, warning=FALSE}
 model_herb_det_selection_SS2_post_hoc_isolation <- run_multiple_gllvm(formulas = list(~ isolation + treatments_cont_pastsug,
                                                                                       ~ isolation30120_480 + treatments_cont_pastsug,
                                                                                       ~ isolation30_120480 + treatments_cont_pastsug),
@@ -391,8 +445,8 @@ model_herb_det_selection_SS2_post_hoc_isolation <- run_multiple_gllvm(formulas =
                                                                       row.eff = ~ (1|ID),
                                                                       family = "negative.binomial",
                                                                       method = "VA",
-                                                                      n.init = 10, seed = 11:20)
-model_herb_det_selection_SS2_post_hoc_isolation
+                                                                      n.init = 10, seed = 1:10)
+model_herb_det_selection_SS2_post_hoc_isolation$AICc_tab
 ```
 All levels of isolation are different.
 
@@ -407,7 +461,7 @@ SS2_predictors <- data.frame(treatments = treatments_SS1,
 sum_com_herb_det_SS2 <- sum_com_SS2[,Trait_SS2_sum$trophic == "consumer"]
 
 col_SS2 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS2))
-col_SS2[Trait_SS2$trait[Trait_SS2$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS2[Trait_SS2_sum$trait[Trait_SS2_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 fit_SS2_plot <- gllvm(sum_com_herb_det_SS2,
                       formula = ~ 1,
@@ -556,9 +610,9 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     y = com_herb_det_SS3, X = SS3_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -582,9 +636,9 @@ model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS3
+model_herb_det_selection_SS3$AICc_tab
 ```
 It seems like there are interactive effects between isolation and agrochemical treatments.
 
@@ -609,11 +663,11 @@ model_herb_det_selection_SS3_post_hoc_treatments_30 <- run_multiple_gllvm(formul
                                                                        row.eff = ~ (1|ID),
                                                                        family = "negative.binomial",
                                                                        method = "VA",
-                                                                       n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                       n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                  maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
 
-model_herb_det_selection_SS3_post_hoc_treatments_30
+model_herb_det_selection_SS3_post_hoc_treatments_30$AICc_tab
 
 
 
@@ -634,10 +688,10 @@ model_herb_det_selection_SS3_post_hoc_treatments_120 <- run_multiple_gllvm(formu
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_treatments_120
+model_herb_det_selection_SS3_post_hoc_treatments_120$AICc_tab
 
 
 
@@ -658,10 +712,10 @@ model_herb_det_selection_SS3_post_hoc_treatments_480 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_treatments_480
+model_herb_det_selection_SS3_post_hoc_treatments_480$AICc_tab
 
 ```
 In all cases, sugarcane ponds were different from control and pasture, but probably in different ways. It will be important to look at plots of species coefficients to assess these differences. 
@@ -684,10 +738,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_control <- run_multiple_gllvm(fo
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_control
+model_herb_det_selection_SS3_post_hoc_isolation_control$AICc_tab
 
 
 
@@ -707,10 +761,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_pasture <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_pasture
+model_herb_det_selection_SS3_post_hoc_isolation_pasture$AICc_tab
 
 
 
@@ -729,10 +783,10 @@ model_herb_det_selection_SS3_post_hoc_isolation_sugarcane <- run_multiple_gllvm(
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS3_post_hoc_isolation_sugarcane
+model_herb_det_selection_SS3_post_hoc_isolation_sugarcane$AICc_tab
 
 ```
 For control ponds, 480m is different from the 30 and 120m.
@@ -750,7 +804,7 @@ SS3_predictors <- data.frame(treatments = treatments_SS1,
 sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "consumer"]
 
 col_SS3 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS3))
-col_SS3[Trait_SS3$trait[Trait_SS3$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS3[Trait_SS3_sum$trait[Trait_SS3_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 
 
@@ -928,9 +982,9 @@ n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     y = com_herb_det_SS4, X = SS4_predictors,
                                     family = "negative.binomial",
                                     method = "VA",
-                                    n.init = 10, seed = 11:20)
+                                    n.init = 10, seed = 1:10)
 
-n_latent_tab_SS4
+n_latent_tab_SS4$AICc_tab
 
 ```
 It looks that zero latent variables is the way to go.
@@ -954,9 +1008,9 @@ model_herb_det_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                    row.eff = ~ (1|ID),
                                                    family = "negative.binomial",
                                                    method = "VA",
-                                                   n.init = 10, seed = 11:20)
+                                                   n.init = 10, seed = 1:10)
 
-model_herb_det_selection_SS4
+model_herb_det_selection_SS4$AICc_tab
 ```
 Ok. Here the model that includes the interaction between isolation is the most plausible model (dAIC = 0). But the one that includes only main effects is considered similarly plausible by the rule of thumb of dAIC > 2. Technically,  It seems like the model that includes the interaction is about 6.5 times more plausible (exponential of 1.88) than the one that does not. Therefore here we will consider the model that includes the interaction the most plausible model.
 
@@ -982,10 +1036,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_30 <- run_multiple_gllvm(formul
                                                                           row.eff = ~ (1|ID),
                                                                           family = "negative.binomial",
                                                                           method = "VA",
-                                                                          n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                          n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                     maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_30
+model_herb_det_selection_SS4_post_hoc_treatments_30$AICc_tab
 
 
 
@@ -1006,10 +1060,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_120 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_120
+model_herb_det_selection_SS4_post_hoc_treatments_120$AICc_tab
 
 
 #Treatments 480m
@@ -1029,10 +1083,10 @@ model_herb_det_selection_SS4_post_hoc_treatments_480 <- run_multiple_gllvm(formu
                                                                            row.eff = ~ (1|ID),
                                                                            family = "negative.binomial",
                                                                            method = "VA",
-                                                                           n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                           n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                      maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_treatments_480
+model_herb_det_selection_SS4_post_hoc_treatments_480$AICc_tab
 
 
 
@@ -1061,10 +1115,10 @@ model_herb_det_selection_SS4_post_hoc_isolation_control <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, control = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_isolation_control
+model_herb_det_selection_SS4_post_hoc_isolation_control$AICc_tab
 
 
 
@@ -1084,10 +1138,10 @@ model_herb_det_selection_SS4_post_hoc_isolation_pasture <- run_multiple_gllvm(fo
                                                                               row.eff = ~ (1|ID),
                                                                               family = "negative.binomial",
                                                                               method = "VA",
-                                                                              n.init = 10, seed = 11:20, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                              n.init = 10, seed = 1:10, pasture = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                         maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_isolation_pasture
+model_herb_det_selection_SS4_post_hoc_isolation_pasture$AICc_tab
 
 
 
@@ -1106,10 +1160,10 @@ model_herb_det_selection_SS4_post_hoc_isolation_sugarcane <- run_multiple_gllvm(
                                                                                 row.eff = ~ (1|ID),
                                                                                 family = "negative.binomial",
                                                                                 method = "VA",
-                                                                                n.init = 10, seed = 11:20, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
+                                                                                n.init = 10, seed = 1:10, sugarcane = list(reltol = 1e-10, TMB = TRUE, optimizer = "optim", max.iter = 2000,
                                                                                                                             maxit = 4000, trace = FALSE, optim.method = "L-BFGS-B"))
 
-model_herb_det_selection_SS4_post_hoc_isolation_sugarcane
+model_herb_det_selection_SS4_post_hoc_isolation_sugarcane$AICc_tab
 
 
 ```
@@ -1123,19 +1177,21 @@ Ploting it:
 
 ```{r, dpi=150, fig.width=9, fig.height=6, fig.align = 'center', warning=FALSE}
 SS4_predictors <- data.frame(treatments = treatments_SS1,
-                             isolation = isolation_SS1)
+                             isolation = isolation_SS1,
+                             treatments_contpast_sug = treatments_contpast_sug)
 
 sum_com_herb_det_SS4 <- sum_com_SS4[,Trait_SS4_sum$trophic == "consumer"]
 
 col_SS4 <- rep("darkolivegreen3", ncol(sum_com_herb_det_SS4))
-col_SS4[Trait_SS4$trait[Trait_SS4$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
+col_SS4[Trait_SS4_sum$trait[Trait_SS4_sum$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 
 
 fit_SS4_plot <- gllvm(sum_com_herb_det_SS4,
                       formula = ~ 1,
                       family = "negative.binomial",
+                      #row.eff = "random",
                       method = "VA",
-                      n.init = 10, num.lv = 2, seed = 11:20)
+                      n.init = 10, num.lv = 2, seed = 1:10)
 
 
 scaled_lvs <- get_scaled_lvs(fit_SS4_plot, alpha = 0.5)

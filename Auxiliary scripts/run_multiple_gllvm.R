@@ -1,4 +1,4 @@
-run_multiple_gllvm <- function(formulas, num.lv = 0, names, no_effect = FALSE, X = NULL, X_row = NULL, ...){
+run_multiple_gllvm <- function(formulas, num.lv = 0, names, no_effect = FALSE, X = NULL, X_row = NULL, correction = TRUE,...){
   models <- list()
 
   if(isTRUE(no_effect)){
@@ -14,12 +14,12 @@ run_multiple_gllvm <- function(formulas, num.lv = 0, names, no_effect = FALSE, X
 
   for(i in first:last){
     models[[i]] <- gllvm(formula = formulas[[i-rev_i]], num.lv = num.lv, X, ...)
-    #names(models)[[i]] <- formulas[[i-rev_i]]
   }
   if(isTRUE(no_effect)){
     models[[1]] <- gllvm(num.lv = num.lv, X = X_row, formula = NULL, ...)
   }
+  names(models) <- names
 
-  AICc_tab <- gllvm_AICc_tab(models, names = names, order = FALSE)
-  return(AICc_tab)
+  AICc_tab <- gllvm_AICc_tab(models, names = names, order = FALSE, correction = correction)
+  return(list(AICc_tab = AICc_tab,models = models))
 }

@@ -72,7 +72,7 @@ com_amphibian_ab_SS3 <- com_amphibian_ab[SS == "3"]
 com_amphibian_ab_SS4 <- com_amphibian_ab[SS == "4"]
 ```
 
-## First Survey (20 day)
+## All surveys
 
 First, lets see what is the best probability distribution to model the
 data
@@ -80,60 +80,60 @@ data
 ``` r
 par(cex = 0.6)
 
-data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
 
 #Gaussian
-mod_amph_SS1_G <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = "gaussian", data = data_SS1)
-simulationResiduals_mod_amph_SS1_G <- simulateResiduals(fittedModel = mod_amph_SS1_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_amphibian_G <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = "gaussian", data = data)
+simulationResiduals_mod_amphibian_G <- simulateResiduals(fittedModel = mod_amphibian_G, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_amph_SS1_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_amphibian_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-2.png" style="display: block; margin: auto;" />
 
 ``` r
 #Poisson
-mod_amph_SS1_P <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = "poisson", data = data_SS1)
-simulationResiduals_mod_amph_SS1_P <- simulateResiduals(fittedModel = mod_amph_SS1_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_amphibian_P <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = "poisson", data = data)
+simulationResiduals_mod_amphibian_P <- simulateResiduals(fittedModel = mod_amphibian_P, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-3.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_amph_SS1_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_amphibian_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-4.png" style="display: block; margin: auto;" />
 
 ``` r
 #Negative Binomial
-mod_amph_SS1_NB <- glmmTMB(com_amphibian_ab_SS1 ~ isolation * treatments, family = nbinom2(link = "log"), data = data_SS1)
-simulationResiduals_mod_amph_SS1_NB <- simulateResiduals(fittedModel = mod_amph_SS1_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS1_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
+mod_amphibian_NB <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = nbinom2(link = "log"), data = data)
+simulationResiduals_mod_amphibian_NB <- simulateResiduals(fittedModel = mod_amphibian_NB, plot = F, seed = 3, n = 1000)
+plotQQunif(simulationResiduals_mod_amphibian_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-5.png" style="display: block; margin: auto;" />
 
 ``` r
-plotResiduals(simulationResiduals_mod_amph_SS1_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
+plotResiduals(simulationResiduals_mod_amphibian_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
 ```
 
 <img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-4-6.png" style="display: block; margin: auto;" />
 
 ``` r
-AIC(mod_amph_SS1_G, mod_amph_SS1_P, mod_amph_SS1_NB)
+AIC(mod_amphibian_G, mod_amphibian_P, mod_amphibian_NB)
 ```
 
-    ##                 df       AIC
-    ## mod_amph_SS1_G  10  421.5502
-    ## mod_amph_SS1_P   9 1036.8690
-    ## mod_amph_SS1_NB 10  259.2733
+    ##                  df      AIC
+    ## mod_amphibian_G  38 4945.145
+    ## mod_amphibian_P  37 6621.067
+    ## mod_amphibian_NB 38 3115.593
 
 It looks like the negative binomial distribution is the one to be
 chosen.
@@ -141,6 +141,44 @@ chosen.
 Now the analysis
 
 ``` r
+mod_amphibian_no_effect <- glmmTMB(com_amphibian_ab ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey <- glmmTMB(com_amphibian_ab ~ survey + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_treatments <- glmmTMB(com_amphibian_ab ~ isolation * treatments + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_treatments <- glmmTMB(com_amphibian_ab ~ survey + (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_i_treatments <- glmmTMB(com_amphibian_ab ~ survey * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+
+model_selection_amphibian <- aictab(list(mod_amphibian_no_effect,
+                                        mod_amphibian_survey,
+                                        mod_amphibian_treatments,
+                                        mod_amphibian_survey_treatments,
+                                        mod_amphibian_survey_i_treatments),
+                                        modnames = c("No Effect",
+                                                     "Survey",
+                                                     "Treatments",
+                                                     "Survey + Treatments",
+                                                     "Survey * Treatments"), sort = FALSE)
+
+model_selection_amphibian
+```
+
+    ## 
+    ## Model selection based on AICc:
+    ## 
+    ##                      K    AICc Delta_AICc AICcWt       LL
+    ## No Effect            3 3189.38      68.36      0 -1591.67
+    ## Survey               6 3133.26      12.24      0 -1560.56
+    ## Treatments          11 3189.32      68.30      0 -1583.43
+    ## Survey + Treatments 14 3134.98      13.96      0 -1553.12
+    ## Survey * Treatments 38 3121.02       0.00      1 -1519.80
+
+It seems the effect of treatments are different in each survey.
+
+## First Survey (20 day)
+
+``` r
+data_SS1 <- data.frame(isolation = isolation_SS1, treatments = treatments_SS1)
+
+
 mod_amph_SS1_no_effect <- glmmTMB(com_amphibian_ab_SS1 ~ 1, family = nbinom2(link = "log"), data = data_SS1)
 mod_amph_SS1_treatments <- glmmTMB(com_amphibian_ab_SS1 ~ treatments, family = nbinom2(link = "log"), data = data_SS1)
 mod_amph_SS1_isolation <- glmmTMB(com_amphibian_ab_SS1 ~ isolation, family = nbinom2(link = "log"), data = data_SS1)
@@ -197,13 +235,11 @@ axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 
 legend(x = 1, y = 100, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS2 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -211,62 +247,7 @@ data_SS2 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS2_G <- glmmTMB(com_amphibian_ab_SS2  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS2)
-simulationResiduals_mod_amph_SS2_G <- simulateResiduals(fittedModel = mod_amph_SS2_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS2_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_amph_SS2_P <- glmmTMB(com_amphibian_ab_SS2 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS2)
-simulationResiduals_mod_amph_SS2_P <- simulateResiduals(fittedModel = mod_amph_SS2_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS2_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_amph_SS2_NB <- glmmTMB(com_amphibian_ab_SS2 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
-simulationResiduals_mod_amph_SS2_NB <- simulateResiduals(fittedModel = mod_amph_SS2_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS2_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS2_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_amph_SS2_G, mod_amph_SS2_P, mod_amph_SS2_NB)
-```
-
-    ##                 df       AIC
-    ## mod_amph_SS2_G  11 1592.4551
-    ## mod_amph_SS2_P  10 1627.2346
-    ## mod_amph_SS2_NB 11  898.1807
-
-Now the analysis
-
-``` r
 mod_amph_SS2_no_effect <- glmmTMB(com_amphibian_ab_SS2 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
 mod_amph_SS2_isolation <- glmmTMB(com_amphibian_ab_SS2 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
 mod_amph_SS2_treatments <- glmmTMB(com_amphibian_ab_SS2 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS2)
@@ -361,8 +342,6 @@ arrows(x0 = c(1, 5, 9) - 0.4,
 ## Third Survey (80 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS3 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -370,62 +349,7 @@ data_SS3 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS3_G <- glmmTMB(com_amphibian_ab_SS3  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS3)
-simulationResiduals_mod_amph_SS3_G <- simulateResiduals(fittedModel = mod_amph_SS3_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS3_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_amph_SS3_P <- glmmTMB(com_amphibian_ab_SS3 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS3)
-simulationResiduals_mod_amph_SS3_P <- simulateResiduals(fittedModel = mod_amph_SS3_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS3_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_amph_SS3_NB <- glmmTMB(com_amphibian_ab_SS3 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
-simulationResiduals_mod_amph_SS3_NB <- simulateResiduals(fittedModel = mod_amph_SS3_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS3_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS3_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-11-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_amph_SS3_G, mod_amph_SS3_P, mod_amph_SS3_NB)
-```
-
-    ##                 df      AIC
-    ## mod_amph_SS3_G  11 1552.629
-    ## mod_amph_SS3_P  10 2176.075
-    ## mod_amph_SS3_NB 11 1206.384
-
-Now the analysis
-
-``` r
 mod_amph_SS3_no_effect <- glmmTMB(com_amphibian_ab_SS3 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
 mod_amph_SS3_isolation <- glmmTMB(com_amphibian_ab_SS3 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
 mod_amph_SS3_treatments <- glmmTMB(com_amphibian_ab_SS3 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS3)
@@ -519,13 +443,11 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
        code = 0, col = c("grey50","grey50","grey0",   "grey50","grey50","grey0",   "grey50","grey50","grey0"))
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
 ``` r
-par(cex = 0.6)
-
 data_SS4 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatments = treatments_SS2_3_4,
                        treatments_contpast_sug = treatments_SS2_3_4_contpast_sug,
                        treatments_cont_pastsug = treatments_SS2_3_4_cont_pastsug,
@@ -533,62 +455,7 @@ data_SS4 <- data.frame(ID = ID_SS2_3_4, isolation = isolation_SS2_3_4, treatment
                        isolation30120_480 = isolation30120_480_SS2_3_4,
                        isolation30_120480 = isolation30_120480_SS2_3_4)
 
-#Gaussian
-mod_amph_SS4_G <- glmmTMB(com_amphibian_ab_SS4  ~ (isolation * treatments) + (1|ID), family = "gaussian", data = data_SS4)
-simulationResiduals_mod_amph_SS4_G <- simulateResiduals(fittedModel = mod_amph_SS4_G, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_G, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS4_G,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-2.png" style="display: block; margin: auto;" />
-
-``` r
-#Poisson
-mod_amph_SS4_P <- glmmTMB(com_amphibian_ab_SS4 ~ (isolation * treatments) + (1|ID), family = "poisson", data = data_SS4)
-simulationResiduals_mod_amph_SS4_P <- simulateResiduals(fittedModel = mod_amph_SS4_P, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_P, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-3.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS4_P,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-4.png" style="display: block; margin: auto;" />
-
-``` r
-#Negative Binomial
-mod_amph_SS4_NB <- glmmTMB(com_amphibian_ab_SS4 ~ (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
-simulationResiduals_mod_amph_SS4_NB <- simulateResiduals(fittedModel = mod_amph_SS4_NB, plot = F, seed = 3, n = 1000)
-plotQQunif(simulationResiduals_mod_amph_SS4_NB, testUniformity = F, testOutliers = F, testDispersion = F, cex.lab = 1.5, cex.main = 1.5) 
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-5.png" style="display: block; margin: auto;" />
-
-``` r
-plotResiduals(simulationResiduals_mod_amph_SS4_NB,  quantreg = F, cex.lab = 1.5, cex.main = 1.5)
-```
-
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-6.png" style="display: block; margin: auto;" />
-
-``` r
-AIC(mod_amph_SS4_G, mod_amph_SS4_P, mod_amph_SS4_NB)
-```
-
-    ##                 df       AIC
-    ## mod_amph_SS4_G  11 1070.5526
-    ## mod_amph_SS4_P  10  936.5122
-    ## mod_amph_SS4_NB 11  714.6492
-
-Now the analysis
-
-``` r
 mod_amph_SS4_no_effect <- glmmTMB(com_amphibian_ab_SS4 ~ 1 + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
 mod_amph_SS4_isolation <- glmmTMB(com_amphibian_ab_SS4 ~ isolation + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
 mod_amph_SS4_treatments <- glmmTMB(com_amphibian_ab_SS4 ~ treatments + (1|ID), family = nbinom2(link = "log"), data = data_SS4)
@@ -639,4 +506,4 @@ axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line 
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />

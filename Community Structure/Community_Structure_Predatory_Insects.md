@@ -89,6 +89,74 @@ com_predators_SS3 <- com_SS3[,Trait_SS3$trophic == "predator"]
 com_predators_SS4 <- com_SS4[,Trait_SS4$trophic == "predator"]
 ```
 
+## All surveys
+
+We always used a negative binomial distribution to model species
+abundances.
+
+``` r
+predictors <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS)
+```
+
+Number of latent variables:
+
+``` r
+n_latent_tab <- run_multiple_lv(formula = ~ treatments * isolation * survey,
+                                    num.lv = c(0,1,2,3),
+                                    row.eff = ~ (1|ID),
+                                    y = com_predators, X = predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+n_latent_tab$AICc_tab
+```
+
+    ##   model     AICc delta_AICc  df nobs
+    ## 1     0 8802.405    0.00000 297 4680
+    ## 2     1 8820.684   18.27964 305 4680
+    ## 3     2 8836.735   34.32983 312 4680
+    ## 4     3 8850.532   48.12710 318 4680
+
+It looks that zero latent variables is the way to go. This will repeat
+itself for the next cases.
+
+Model selection of effects:
+
+``` r
+model_predators_selection <- run_multiple_gllvm(formulas = list(    ~ survey,
+                                                                    ~ treatments * isolation,
+                                                                    ~ survey + (treatments * isolation),
+                                                                    ~ survey * (treatments * isolation)),
+                                                    names = c("Survey",
+                                                              "Isolation * Treatments",
+                                                              "Survey + (Isolation * Treatments)",
+                                                              "Survey * (Isolation * Treatments)"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID),
+                                                    X = predictors,
+                                                    y = com_predators,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_predators_selection$AICc_tab
+```
+
+    ##                               model     AICc delta_AICc  df nobs
+    ## 1                         No Effect 9382.236  579.83166  17 4680
+    ## 2                            Survey 8952.650  150.24524  41 4680
+    ## 3            Isolation * Treatments 9280.152  477.74686  81 4680
+    ## 4 Survey + (Isolation * Treatments) 8847.648   45.24349 105 4680
+    ## 5 Survey * (Isolation * Treatments) 8802.405    0.00000 297 4680
+
+It seems that the effect of treatments is different in each survey.
+
 ## First Survey (20 day)
 
 We always used a negative binomial distribution to model species
@@ -109,7 +177,7 @@ n_latent_tab_SS1 <- run_multiple_lv(formula = ~ treatments * isolation,
                                    method = "VA",
                                    n.init = 10, seed = 11:20, starting.val = 0)
 
-n_latent_tab_SS1
+n_latent_tab_SS1$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
@@ -140,7 +208,7 @@ model_predators_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments
                    method = "VA",
                    n.init = 10, seed = 11:20, starting.val = 0)
 
-model_predators_selection_SS1
+model_predators_selection_SS1$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -271,7 +339,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -293,7 +361,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
@@ -319,7 +387,7 @@ n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                 method = "VA",
                                 n.init = 10, seed = 11:20)
 
-n_latent_tab_SS2
+n_latent_tab_SS2$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
@@ -351,7 +419,7 @@ model_predators_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
 
-model_predators_selection_SS2
+model_predators_selection_SS2$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -383,7 +451,7 @@ model_predators_selection_SS2_post_hoc_treatments <- run_multiple_gllvm(formulas
                                                     family = "negative.binomial",
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
-model_predators_selection_SS2_post_hoc_treatments
+model_predators_selection_SS2_post_hoc_treatments$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -460,7 +528,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
 
 Ploting species coefficients and their confidence intervals based on the
 effects identified in the analysis. The script for extracting these
@@ -489,7 +557,7 @@ My_coefplot(mles = effect_SS2_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3, at.xaxis = c(2,0,-2,-4, -14, -16),break.axis = c(-6,-12))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
 
 Ordinations focusing on isolation
 
@@ -513,7 +581,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
 
 ## Third Survey (80 day)
 
@@ -539,7 +607,7 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
@@ -571,7 +639,7 @@ model_predators_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
 
-model_predators_selection_SS3
+model_predators_selection_SS3$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -606,11 +674,77 @@ model_predators_selection_SS3_post_hoc_treatments <- run_multiple_gllvm(formulas
 model_predators_selection_SS3_post_hoc_treatments
 ```
 
+    ## $AICc_tab
     ##                             model     AICc delta_AICc df nobs
     ## 1   control # pasture # sugarcane 3289.079    0.00000 43 1260
     ## 2 (control = pasture) # sugarcane 3304.074   14.99513 36 1260
     ## 3 control # (pasture = sugarcane) 3370.469   81.38980 36 1260
     ## 4 (control = sugarcane) # pasture 3377.069   87.99002 36 1260
+    ## 
+    ## $models
+    ## $models$`control # pasture # sugarcane`
+    ## Call: 
+    ## gllvm(y = ..1, X = X, formula = formulas[[i - rev_i]], num.lv = num.lv, 
+    ##     family = "negative.binomial", row.eff = ..2, method = "VA", 
+    ##     seed = ..6, n.init = 10)
+    ## family: 
+    ## [1] "negative.binomial"
+    ## method: 
+    ## [1] "VA"
+    ## 
+    ## log-likelihood:  -1599.984 
+    ## Residual degrees of freedom:  1217 
+    ## AIC:  3285.967 
+    ## AICc:  3289.079 
+    ## BIC:  3423.265 
+    ## 
+    ## $models$`(control = pasture) # sugarcane`
+    ## Call: 
+    ## gllvm(y = ..1, X = X, formula = formulas[[i - rev_i]], num.lv = num.lv, 
+    ##     family = "negative.binomial", row.eff = ..2, method = "VA", 
+    ##     seed = ..6, n.init = 10)
+    ## family: 
+    ## [1] "negative.binomial"
+    ## method: 
+    ## [1] "VA"
+    ## 
+    ## log-likelihood:  -1614.948 
+    ## Residual degrees of freedom:  1224 
+    ## AIC:  3301.896 
+    ## AICc:  3304.074 
+    ## BIC:  3416.843 
+    ## 
+    ## $models$`control # (pasture = sugarcane)`
+    ## Call: 
+    ## gllvm(y = ..1, X = X, formula = formulas[[i - rev_i]], num.lv = num.lv, 
+    ##     family = "negative.binomial", row.eff = ..2, method = "VA", 
+    ##     seed = ..6, n.init = 10)
+    ## family: 
+    ## [1] "negative.binomial"
+    ## method: 
+    ## [1] "VA"
+    ## 
+    ## log-likelihood:  -1648.145 
+    ## Residual degrees of freedom:  1224 
+    ## AIC:  3368.291 
+    ## AICc:  3370.469 
+    ## BIC:  3483.237 
+    ## 
+    ## $models$`(control = sugarcane) # pasture`
+    ## Call: 
+    ## gllvm(y = ..1, X = X, formula = formulas[[i - rev_i]], num.lv = num.lv, 
+    ##     family = "negative.binomial", row.eff = ..2, method = "VA", 
+    ##     seed = ..6, n.init = 10)
+    ## family: 
+    ## [1] "negative.binomial"
+    ## method: 
+    ## [1] "VA"
+    ## 
+    ## log-likelihood:  -1651.446 
+    ## Residual degrees of freedom:  1224 
+    ## AIC:  3374.891 
+    ## AICc:  3377.069 
+    ## BIC:  3489.837
 
 It seems that all treatments are different from each other.
 
@@ -632,7 +766,7 @@ model_predators_selection_SS3_post_hoc_isolation <- run_multiple_gllvm(formulas 
                                                                         family = "negative.binomial",
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
-model_predators_selection_SS3_post_hoc_isolation
+model_predators_selection_SS3_post_hoc_isolation$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -703,7 +837,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-29-1.png" style="display: block; margin: auto;" />
 
 Now the coefficients
 
@@ -733,7 +867,7 @@ My_coefplot(mles = effect_SS3_pasture_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-27-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-30-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -755,7 +889,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-28-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-31-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -768,7 +902,7 @@ My_coefplot(mles = effect_SS3_30_120_480,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-29-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
@@ -794,7 +928,7 @@ n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS4
+n_latent_tab_SS4$AICc_tab
 ```
 
     ##   model     AICc delta_AICc df nobs
@@ -826,7 +960,7 @@ model_predators_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments
                                                     method = "VA",
                                                     n.init = 10, seed = 11:20)
 
-model_predators_selection_SS4
+model_predators_selection_SS4$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc df nobs
@@ -858,7 +992,7 @@ model_predators_selection_SS4_post_hoc_treatments <- run_multiple_gllvm(formulas
                                                                         family = "negative.binomial",
                                                                         method = "VA",
                                                                         n.init = 10, seed = 11:20)
-model_predators_selection_SS4_post_hoc_treatments
+model_predators_selection_SS4_post_hoc_treatments$AICc_tab
 ```
 
     ##                             model     AICc delta_AICc df nobs
@@ -888,7 +1022,7 @@ model_predators_selection_SS4_post_hoc_isolation <- run_multiple_gllvm(formulas 
                                                                        family = "negative.binomial",
                                                                        method = "VA",
                                                                        n.init = 10, seed = 11:20)
-model_predators_selection_SS4_post_hoc_isolation
+model_predators_selection_SS4_post_hoc_isolation$AICc_tab
 ```
 
     ##              model     AICc delta_AICc df nobs
@@ -917,7 +1051,7 @@ fit_SS4_plot <- gllvm(sum_com_predators_SS4, #X = data.frame(ID = ID_SS2_3_4),
                       formula = ~ 1,
                       family = "negative.binomial",
                       method = "VA",
-                      #row.eff = ~ (1|ID),
+                      #row.eff = "random",
                       n.init = 10, num.lv = 2, seed = 11:20)
 
 
@@ -964,7 +1098,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-35-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-38-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -978,7 +1112,7 @@ My_coefplot(mles = effect_SS4_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-36-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-39-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -1000,7 +1134,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-37-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-40-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -1026,4 +1160,4 @@ My_coefplot(mles = effect_SS4_120_480,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-38-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-41-1.png" style="display: block; margin: auto;" />

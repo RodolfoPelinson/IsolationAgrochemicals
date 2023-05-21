@@ -128,10 +128,13 @@ summarize_community <- function(com, ID){
   return(summarized_com)
 }
 
+
 sum_com_SS1 <- summarize_community(com_SS1, ID_SS1)
 sum_com_SS2 <- summarize_community(com_SS2, ID_SS2_3_4)
 sum_com_SS3 <- summarize_community(com_SS3, ID_SS2_3_4)
 sum_com_SS4 <- summarize_community(com_SS4, ID_SS2_3_4)
+
+
 
 Trait_SS1_sum <- Trait_SS1[order(Trait_SS1$total_ab, decreasing = TRUE),]
 sum_com_SS1 <- sum_com_SS1[,order(Trait_SS1$total_ab, decreasing = TRUE)]
@@ -182,3 +185,6 @@ sum_com_orig_SS3 <- sum_com_orig_SS3[,order(Trait_SS3_orig$total_ab, decreasing 
 
 Trait_SS4_sum_orig <- Trait_SS4_orig[order(Trait_SS4_orig$total_ab, decreasing = TRUE),]
 sum_com_orig_SS4 <- sum_com_orig_SS4[,order(Trait_SS4_orig$total_ab, decreasing = TRUE)]
+
+
+

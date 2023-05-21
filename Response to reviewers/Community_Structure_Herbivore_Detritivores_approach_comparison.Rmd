@@ -1,0 +1,562 @@
+---
+title: "Community Structure - Herbivore and Detritivores"
+author: "Rodolfo Pelinson"
+date: "27/12/2022"
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo = TRUE, message=FALSE, warning=FALSE}
+library(vegan)
+library(gllvm)
+```
+
+```{r include = FALSE}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/Loading_data.R")
+source("Auxiliary scripts/Ordination_plots.R")
+
+```
+
+
+Before anything, here are three functions that will automate most of the model selection procedures that we will be doing. The script would be gigantic without them.
+
+This first one is just to make a model selection table based on AICc for gllvm models. All functions rely on the gllvm function from the `gllvm` version 1.3.1 (it may need adjustments for other versions).
+```{r}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/gllvm_AICc_tab.R")
+```
+
+This one is to run multiple gllvms with different number of latent variables and perform model selection. Its useful to find the ideal number of latent variables necessary to accurately account for correlations (dependencies) in species co-occurrences not caused by our treatments.
+```{r}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/run_multiple_lv.R")
+```
+
+This is to automate running multiple gllvms and perform model selection
+
+```{r}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/run_multiple_gllvm.R")
+```
+
+
+This is for getting scaled latent variables for plotting model based ordinations. I took most of code from the plotting functions from the `gllvm` package.
+```{r}
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/get_scaled_lvs.R")
+```
+
+
+
+# Herbivores and Detritivores
+
+Lets make tables with only herbivore and insectivores. Note that here we excludes species that occur in less than 4 samples in each survey because are less informative to community patterns and complicate parameter estimation.
+
+```{r, warning=FALSE}
+com_herb_det_SS1 <- com_SS1[,Trait_SS1$trophic == "consumer"]
+com_herb_det_SS2 <- com_SS2[,Trait_SS2$trophic == "consumer"]
+com_herb_det_SS3 <- com_SS3[,Trait_SS3$trophic == "consumer"]
+com_herb_det_SS4 <- com_SS4[,Trait_SS4$trophic == "consumer"]
+
+sum_com_herb_det_SS2 <- sum_com_SS2[,Trait_SS2_sum$trophic == "consumer"]
+sum_com_herb_det_SS3 <- sum_com_SS3[,Trait_SS3_sum$trophic == "consumer"]
+sum_com_herb_det_SS4 <- sum_com_SS4[,Trait_SS4_sum$trophic == "consumer"]
+```
+
+
+## First Survey (20 day)
+
+We always used a negative binomial distribution to model species abundances.
+
+```{r}
+SS1_predictors <- data.frame(treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+```
+
+
+
+Number of latent variables:
+```{r, warning=FALSE}
+n_latent_tab_SS1 <- run_multiple_lv(formula = ~ treatments * isolation,
+                                    num.lv = c(0,1,2,3),
+                                    y = com_herb_det_SS1, X = SS1_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10, starting.val = 0)
+
+n_latent_tab_SS1$AICc_tab
+
+```
+It looks that zero latent variables is the way to go. This will repeat itself for the next cases.
+
+
+Model selection of effects:
+```{r, warning=FALSE}
+model_herb_det_selection_SS1 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    X = SS1_predictors,
+                                                    y = com_herb_det_SS1,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10, starting.val = 0)
+
+model_herb_det_selection_SS1$AICc_tab
+```
+It seems that isolation is important. For model selection with mixed models.
+
+From a frequentist perspective, doing LRT.
+```{r}
+anova(model_herb_det_selection_SS1$models$Treatments, model_herb_det_selection_SS1$models$`Isolation + Treatments`)
+anova(model_herb_det_selection_SS1$models$Isolation, model_herb_det_selection_SS1$models$`Isolation + Treatments`)
+anova(model_herb_det_selection_SS1$models$`Isolation + Treatments`, model_herb_det_selection_SS1$models$`Isolation * Treatments`)
+```
+Here the interaction seems to be marginally important. But normally we should not even consider this possibility as agrochemical treatments didn't even started yet.
+
+### I would say that LRT and AICc model selection agree on this one.
+
+
+## Second Survey (40 day)
+
+```{r, warning=FALSE}
+SS2_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = com_herb_det_SS2, X = SS2_predictors,
+                                    row.eff = ~ (1|ID),
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+n_latent_tab_SS2$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+model_herb_det_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID_SS2_3_4),
+                                                    num.lv = 0,
+                                                    X = SS2_predictors,
+                                                    y = com_herb_det_SS2,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 11:20)
+
+model_herb_det_selection_SS2$AICc_tab
+
+```
+
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(model_herb_det_selection_SS2$models$Treatments, model_herb_det_selection_SS2$models$`Isolation + Treatments`)
+
+#Treatments
+anova(model_herb_det_selection_SS2$models$Isolation, model_herb_det_selection_SS2$models$`Isolation + Treatments`)
+
+#Interaction
+anova(model_herb_det_selection_SS2$models$`Isolation + Treatments`, model_herb_det_selection_SS2$models$`Isolation * Treatments`)
+```
+Here the interaction also seems to be important. But pay attention to the warning message.
+
+
+#### Now, lets repeat this analysis pooling all samples from the same pond together.
+
+```{r, warning=FALSE}
+sum_SS2_predictors <- data.frame(ID = ID_SS1,
+                             treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+sum_n_latent_tab_SS2 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = sum_com_herb_det_SS2, X = sum_SS2_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+sum_n_latent_tab_SS2$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+sum_model_herb_det_selection_SS2 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    X = sum_SS2_predictors,
+                                                    y = sum_com_herb_det_SS2,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 11:20)
+
+sum_model_herb_det_selection_SS2$AICc_tab
+```
+Again, additive effects of isolation and treatment.
+
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(sum_model_herb_det_selection_SS2$models$Treatments, sum_model_herb_det_selection_SS2$models$`Isolation + Treatments`)
+
+#Treatments
+anova(sum_model_herb_det_selection_SS2$models$Isolation, sum_model_herb_det_selection_SS2$models$`Isolation + Treatments`)
+
+#Interaction
+anova(sum_model_herb_det_selection_SS2$models$`Isolation + Treatments`, sum_model_herb_det_selection_SS2$models$`Isolation * Treatments`)
+```
+Now the interaction seems to not be important according to LRT.
+
+#### Conclusion
+Model selection by AICc agreed in only additive effects of isolation and agrochemical treatments both using mixed models and pooling all samples from the same ponds together. However, LRT for mixed models pointed out towards effects of interaction between treatments and isolation. Because AICc tends to penalize more heavily models with more parameters than LRT do, I believe we only have enough evidence for additive effects of treatments in this case.
+
+
+
+
+## Third Survey (80 day)
+
+```{r, warning=FALSE}
+SS3_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = com_herb_det_SS3, X = SS3_predictors,
+                                    row.eff = ~ (1|ID),
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+n_latent_tab_SS3$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID_SS2_3_4),
+                                                    num.lv = 0,
+                                                    X = SS3_predictors,
+                                                    y = com_herb_det_SS3,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 11:20)
+
+model_herb_det_selection_SS3$AICc_tab
+
+```
+It seems like there is evidence for interactive effects of agrochemicals and isolation here
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(model_herb_det_selection_SS3$models$Treatments, model_herb_det_selection_SS3$models$`Isolation + Treatments`)
+
+#Treatments
+anova(model_herb_det_selection_SS3$models$Isolation, model_herb_det_selection_SS3$models$`Isolation + Treatments`)
+
+#Interaction
+anova(model_herb_det_selection_SS3$models$`Isolation + Treatments`, model_herb_det_selection_SS3$models$`Isolation * Treatments`)
+```
+P-values for LRT go to the same direction
+
+
+#### Now, lets repeat this analysis pooling all samples from the same pond together.
+```{r, warning=FALSE}
+sum_SS3_predictors <- data.frame(ID = ID_SS1,
+                             treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+sum_n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = sum_com_herb_det_SS3, X = sum_SS3_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+sum_n_latent_tab_SS3$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+sum_model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    X = sum_SS3_predictors,
+                                                    y = sum_com_herb_det_SS3,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+sum_model_herb_det_selection_SS3$AICc_tab
+```
+Now it seems we only have evidence for additive effects.
+
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(sum_model_herb_det_selection_SS3$models$Treatments, sum_model_herb_det_selection_SS3$models$`Isolation + Treatments`)
+
+#Treatments
+anova(sum_model_herb_det_selection_SS3$models$Isolation, sum_model_herb_det_selection_SS3$models$`Isolation + Treatments`)
+
+#Interaction
+anova(sum_model_herb_det_selection_SS3$models$`Isolation + Treatments`, sum_model_herb_det_selection_SS3$models$`Isolation * Treatments`)
+```
+LRT in this case also points towards only additive effects. But the effect of the interaction could be considered marginally significant.
+
+
+#### Conclusion
+Here mixed models points towards interactive effects of isolation and treatments. However, pooling samples together only indicate additive effects. We chose here to with the effects of mixed models as the data set used in those models may carry more statistical information than when we pool all samples from the same pond together. Bur we generally agree that the evidence for interactive effects here is not as strong as we will se in the next case.
+
+
+
+
+
+## Fourth Survey (160 day)
+
+```{r, warning=FALSE}
+SS4_predictors <- data.frame(ID = ID_SS2_3_4,
+                             treatments = treatments_SS2_3_4,
+                             isolation = isolation_SS2_3_4)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = com_herb_det_SS4, X = SS4_predictors,
+                                    row.eff = ~ (1|ID),
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+n_latent_tab_SS4$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+model_herb_det_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID_SS2_3_4),
+                                                    num.lv = 0,
+                                                    X = SS4_predictors,
+                                                    y = com_herb_det_SS4,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_herb_det_selection_SS4$AICc_tab
+
+```
+It seems like there is weak evidence for interactive effects of agrochemicals and isolation here.
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(model_herb_det_selection_SS4$models$Treatments, model_herb_det_selection_SS4$models$`Isolation + Treatments`)
+
+#Treatments
+anova(model_herb_det_selection_SS4$models$Isolation, model_herb_det_selection_SS4$models$`Isolation + Treatments`)
+
+#Interaction
+anova(model_herb_det_selection_SS4$models$`Isolation + Treatments`, model_herb_det_selection_SS4$models$`Isolation * Treatments`)
+```
+P-values for LRT points towards interactive effects, again.
+
+
+#### Now, lets repeat this analysis pooling all samples from the same pond together.
+```{r, warning=FALSE}
+sum_SS4_predictors <- data.frame(ID = ID_SS1,
+                             treatments = treatments_SS1,
+                             isolation = isolation_SS1)
+```
+
+
+Number of latent variables:
+```{r, cache = TRUE, warning=FALSE}
+sum_n_latent_tab_SS4 <- run_multiple_lv(num.lv = c(0,1,2,3),
+                                    formula = ~ treatments * isolation,
+                                    y = sum_com_herb_det_SS4, X = sum_SS4_predictors,
+                                    family = "negative.binomial",
+                                    method = "VA",
+                                    n.init = 10, seed = 1:10)
+
+
+sum_n_latent_tab_SS4$AICc_tab
+
+```
+It looks that zero latent variables is the way to go.
+
+
+Model selection of effects:
+```{r, cache = TRUE, warning=FALSE}
+sum_model_herb_det_selection_SS4 <- run_multiple_gllvm(formulas = list(~ treatments,
+                                                                    ~ isolation,
+                                                                    ~ treatments + isolation,
+                                                                    ~ treatments * isolation),
+                                                    names = c("Treatments",
+                                                              "Isolation",
+                                                              "Isolation + Treatments",
+                                                              "Isolation * Treatments"),
+                                                    no_effect = TRUE,
+                                                    num.lv = 0,
+                                                    row.eff = FALSE,
+                                                    X = sum_SS4_predictors,
+                                                    y = sum_com_herb_det_SS4,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+sum_model_herb_det_selection_SS4$AICc_tab
+
+model_herb_det_selection_SS4$AICc_tab
+
+sum_model_herb_det_selection_SS4$models$Treatments
+model_herb_det_selection_SS4$models$Treatments
+
+sum_model_herb_det_selection_SS4$models$Treatments$params
+model_herb_det_selection_SS4$models$Treatments$params
+
+model_herb_det_selection_SS4$models$Treatments$sd
+model_herb_det_selection_SS4$models$Treatments$A
+model_herb_det_selection_SS4$models$Treatments$Hess
+
+
+
+logLik(model_herb_det_selection_SS4$models$Treatments)
+logLik(sum_model_herb_det_selection_SS4$models$Treatments)
+
+logLik(model_herb_det_selection_SS4$models$`Isolation * Treatments`)
+
+
+AICc()
+
+
+
+```
+Model selection here points towards only effects of agrochemical treatments.
+
+
+From a frequentist perspective:
+```{r}
+#Isolation
+anova(sum_model_herb_det_selection_SS4$models$Treatments, sum_model_herb_det_selection_SS4$models$`Isolation + Treatments`)
+
+#Treatments
+anova(sum_model_herb_det_selection_SS4$models$Isolation, sum_model_herb_det_selection_SS4$models$`Isolation + Treatments`)
+
+#Interaction
+anova(sum_model_herb_det_selection_SS4$models$`Isolation + Treatments`, sum_model_herb_det_selection_SS4$models$`Isolation * Treatments`)
+```
+LRT in this case also points towards interactive effects.
+
+
+#### Conclusion
+Here the only case where interactive effects seems to not be important happens when we pool all samples from the same pond together and do model selection through AICc, which penalizes complex models more strongly.
+
+## Gerneral conclusion
+Generally, model selection with samples pooled together seems to be to conservative, whereas LRTs seems to be the oposit. Both LRT and model selection through AICc have pros and cons.
+
+ - Likelihood Ratio Tests generically don't penalize for the number of parameters in the model and are likely to consider that more parameters provide a better fit to the models. Also,  they are not indicated for gllvms because of the large difference in degrees of freedom.
+
+ - Model Selection through AICc have a problem of not accurately estimate degrees of freedom in mixed models and heavely penalize models with too many parameters. However this seems to not be a problem with the mixed model approach.
+ 
+Finally, given these results and the ones for predators, we chose to interpret the results for model selection the mixed models.
+
+

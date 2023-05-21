@@ -1,6 +1,6 @@
-get_scaled_lvs <- function(object, alpha = 0.5){
+get_scaled_lvs <- function(object, alpha = 0.5, ...){
 
-  choose.lvs <- getLV(object, type = "scaled")
+  choose.lvs <- getLV(object, ...)
   choose.lv.coefs <- object$params$theta
 
   #Compute the singular-value decomposition of a rectangular matrix for ratation
