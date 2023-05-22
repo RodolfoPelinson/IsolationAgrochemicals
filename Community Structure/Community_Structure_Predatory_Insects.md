@@ -48,6 +48,18 @@ setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/get_scaled_lvs.R")
 ```
 
+This is for ploting species coefficients and their confidence intervals
+based on the effects identified in the analysis. The script for
+extracting these coefficients and the function for plotting is rather
+extensive, thus I will source the code on a script in the Auxiliary
+Scripts folder. You can check the original code there.
+
+``` r
+setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
+source("Auxiliary scripts/coefficients for predators.R")
+source("Auxiliary scripts/My_coefplot.R")
+```
+
 # Predatory insects
 
 Lets make tables with only predatory insects. Note that here we excludes
@@ -98,7 +110,12 @@ abundances.
 predictors <- data.frame(ID = ID,
                          treatments = treatments_all,
                          isolation = isolation_all,
-                         survey = SS)
+                         survey = SS,
+                         survey_12_3_4 = SS_12_3_4,
+                         survey_1_2_34 = SS_1_2_34,
+                         survey_1_23_4 = SS_1_23_4,
+                         survey_123_4 = SS_123_4,
+                         survey_1_234 = SS_1_234)
 ```
 
 Number of latent variables:
@@ -156,6 +173,177 @@ model_predators_selection$AICc_tab
     ## 5 Survey * (Isolation * Treatments) 8802.405    0.00000 297 4680
 
 It seems that the effect of treatments is different in each survey.
+
+``` r
+model_predators_selection_surveys <- run_multiple_gllvm(formulas = list(    ~ survey * (treatments * isolation),
+                                                                    ~ survey_12_3_4 * (treatments * isolation),
+                                                                    ~ survey_1_2_34 * (treatments * isolation),
+                                                                    ~ survey_1_23_4 * (treatments * isolation),
+                                                                    ~ survey_123_4 * (treatments * isolation),
+                                                                    ~ survey_1_234 * (treatments * isolation)),
+                                                    names = c("1 # 2 # 3 # 4",
+                                                              "(1 = 2) # 3 # 4",
+                                                              "1 # 2 # (3 = 4)",
+                                                              "1 # (2 = 3) # 4",
+                                                              "(1 = 2 = 3) # 4",
+                                                              "1 # (2 = 3 = 4)"),
+                                                    no_effect = FALSE,
+                                                    num.lv = 0,
+                                                    row.eff = ~ (1|ID),
+                                                    X_row = data.frame(ID = ID),
+                                                    X = predictors,
+                                                    y = com_predators,
+                                                    family = "negative.binomial",
+                                                    method = "VA",
+                                                    n.init = 10, seed = 1:10)
+
+model_predators_selection_surveys$AICc_tab
+```
+
+    ##             model     AICc delta_AICc  df nobs
+    ## 1   1 # 2 # 3 # 4 8802.405    0.00000 297 4680
+    ## 2 (1 = 2) # 3 # 4 8861.339   58.93465 225 4680
+    ## 3 1 # 2 # (3 = 4) 8870.117   67.71214 225 4680
+    ## 4 1 # (2 = 3) # 4 9131.021  328.61606 225 4680
+    ## 5 (1 = 2 = 3) # 4 9166.187  363.78178 153 4680
+    ## 6 1 # (2 = 3 = 4) 9245.903  443.49871 153 4680
+
+All surveys are different from each other
+
+Plot emphasizing effects of survey only. The code for plotting the
+ordinations is pretty extensive, I will then only show the first one as
+an example e call the others from functions sourced from the ’Auxiliary
+scripts” folder.
+
+``` r
+predictors <- data.frame(ID = rep(ID_SS1,4),
+                         treatments = rep(treatments_SS1,4),
+                         isolation = rep(isolation_SS1,4),
+                         survey = as.factor(c(rep(1, 45), rep(2, 45), rep(3, 45), rep(4, 45))))
+
+
+sum_com_predators <- sum_com[,Trait$trophic == "predator"]
+
+col <- rep("lightsalmon1", ncol(sum_com_predators))
+
+col_survey_1 <- "#0072B2"
+col_survey_2 <- "#CC79A7"
+col_survey_3 <- "#D55E00"
+col_survey_4 <- "#E69F00"
+
+
+fit_plot <- gllvm(as.data.frame(sum_com_predators), X = data.frame(ID = predictors$ID),
+                      formula = ~ 1,
+                      family = "negative.binomial",
+                      method = "VA",
+                      row.eff = ~ (1|ID),
+                      n.init = 10, num.lv = 2, seed = 1:10)
+
+
+scaled_lvs <- get_scaled_lvs(fit_plot, alpha = 0.5)
+
+set.seed(2)
+scaled_lvs$species <- jitter(scaled_lvs$species, amount = 0.01)
+set.seed(2)
+scaled_lvs$sites <- jitter(scaled_lvs$sites, amount = 0.01)
+
+scaled_lvs$new_species <- scaled_lvs$species/4
+
+
+xmin <- min(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+xmax <- max(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
+ymin <- min(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1 - 0.005
+ymax <- max(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1 + 0.005
+
+
+par(mar = c(4,4,1.25,.1),  mfrow = c(2,1))
+
+  plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
+  axis(1 , gap.axis = -10)
+  axis(2 , gap.axis = -10)
+  abline(h=0,v=0, lty =2)
+
+  ordiellipse(scaled_lvs$sites,
+              groups = predictors$survey,
+              draw = "polygon", border = FALSE,  col = c(col_survey_1, col_survey_2, col_survey_3, col_survey_4), kind = "sd", alpha = 50)
+
+  #ordiellipse(scaled_lvs$sites,
+  #            groups = predictors$treatments,
+  #            draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
+
+  points(scaled_lvs$sites[predictors$survey == "1" ,], bg = col_survey_1, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "2" ,], bg = col_survey_2, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "3" ,], bg = col_survey_3, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "4" ,], bg = col_survey_4, pch = 21)
+
+
+  centroid_1 <- colMeans(scaled_lvs$sites[predictors$survey == "1" ,])
+  centroid_2 <- colMeans(scaled_lvs$sites[predictors$survey == "2" ,])
+  centroid_3 <- colMeans(scaled_lvs$sites[predictors$survey == "3" ,])
+  centroid_4 <- colMeans(scaled_lvs$sites[predictors$survey == "4" ,])
+
+  #centroid_control_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "control",])
+  #centroid_pasture_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "pasture",])
+  #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "sugar_cane",])
+
+
+  #lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
+  #      y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
+
+  #lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
+  #      y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
+
+
+
+  for(i in 1:nrow(scaled_lvs$new_species)){
+    points(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], cex = 4, pch = 21, bg = col[i])
+    text(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], labels = substr(rownames(scaled_lvs$species)[i], 1, 3), cex = 0.9)
+  }
+
+  points(centroid_1[1], centroid_1[2], bg = col_survey_1, pch = 23, cex = 1.5)
+  points(centroid_2[1], centroid_2[2], bg = col_survey_2, pch = 24, cex = 1.5)
+  points(centroid_3[1], centroid_3[2], bg = col_survey_3, pch = 22, cex = 1.5)
+  points(centroid_4[1], centroid_4[2], bg = col_survey_4, pch = 21, cex = 1.5)
+
+  box()
+
+
+par(mar = c(0,0,0,0),cex = 1.25)
+plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", ylab = "", xlab = "")
+legend(x = 0, y = 100, pch = c(23, 24, 22, 21), legend = c("Centroid - 20 days", "Centroid - 40 days", "Centroid - 80 days", "Centroid - 160 days"), pt.bg  = c(col_survey_1, col_survey_2, col_survey_3, col_survey_4), bty = "n")
+
+legend(x = 0, y = 50, pch = c(21), legend = c("Predatory Insects"), pt.bg   = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
+```
+
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
+
+These are the coefficients Coefficients for each taxa
+
+``` r
+par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
+
+species_labels <- sub(pattern = ".", replacement = " ", x =names(effect_1_2), fixed = TRUE)
+
+My_coefplot(mles = effect_1_2,
+            lower = effect_1_2_lower,
+            upper = effect_1_2_upper,
+            species_labels = species_labels,  xlab = "Effect on abundance", main = "20 days vs 40 days",
+            cex.axis = 1, cex.main = 1, font = 3, at.xaxis = c(-3,0,3,6,9))
+
+My_coefplot(mles = effect_2_3,
+            lower = effect_2_3_lower,
+            upper = effect_2_3_upper,
+            species_labels = species_labels,  xlab = "Effect on abundance", main = "40 days vs 80 days",
+            cex.axis = 1, cex.main = 1, font = 3, break.axis = c(-3,-8), at.xaxis = c(-11, -9, -2, 0, 2, 4))
+
+My_coefplot(mles = effect_3_4,
+            lower = effect_3_4_lower,
+            upper = effect_3_4_upper,
+            species_labels = species_labels,  xlab = "Effect on abundance", main = "80 days vs 160 days",
+            cex.axis = 1, cex.main = 1, font = 3)
+```
+
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 ## First Survey (20 day)
 
@@ -221,9 +409,7 @@ model_predators_selection_SS1$AICc_tab
 It seems there was no effect on community structure for the first
 survey.
 
-The code for plotting the ordinations is again pretty extensive, I will
-then only show the first one as an example e call the others from
-functions sourced from the ’Auxiliary scripts” folder.
+Plots of ordinations
 
 ``` r
 SS1_predictors <- data.frame(treatments = treatments_SS1,
@@ -254,9 +440,6 @@ scaled_lvs$sites <- jitter(scaled_lvs$sites, amount = 0.01)
 
 scaled_lvs$new_species <- scaled_lvs$species/2
 
-
-
-
 xmin <- min(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
 xmax <- max(c(scaled_lvs$sites[,1], scaled_lvs$new_species[,1]))*1.1
 ymin <- min(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
@@ -265,64 +448,7 @@ ymax <- max(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1
 
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
 
-  plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
-  axis(1 , gap.axis = -10)
-  axis(2 , gap.axis = -10)
-  abline(h=0,v=0, lty =2)
-  
-  ordiellipse(scaled_lvs$sites[SS1_predictors$isolation == "30",],
-              groups = SS1_predictors$treatments[SS1_predictors$isolation == "30"],
-              draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
-  
-  #ordiellipse(scaled_lvs$sites,
-  #            groups = SS1_predictors$treatments,
-  #            draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
-  
-  points(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",], bg = col_control_30, pch = 21)
-  points(scaled_lvs$sites[SS1_predictors$treatments == "pasture" & SS1_predictors$isolation == "30",], bg = col_pasture_30, pch = 21)
-  points(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",], bg = col_sugarcane_30, pch = 21)
-  
-  
-  centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control" & SS1_predictors$isolation == "30",])
-  centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture" & SS1_predictors$isolation == "30",])
-  centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane" & SS1_predictors$isolation == "30",])
-  
-  #centroid_control_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "control",])
-  #centroid_pasture_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "pasture",])
-  #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[SS1_predictors$treatments == "sugar_cane",])
-  
-  
-  #lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
-  #      y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
-  
-  #lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
-  #      y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
-  
-  
-  
-  for(i in 1:nrow(scaled_lvs$new_species)){
-    points(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], cex = 4, pch = 21, bg = col_SS1[i])
-    text(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], labels = substr(rownames(scaled_lvs$species)[i], 1, 3), cex = 0.9)
-  }
-  
-  points(centroid_control_30[1], centroid_control_30[2], bg = col_control_30, pch = 23, cex = 1.5)
-  points(centroid_pasture_30[1], centroid_pasture_30[2], bg = col_pasture_30, pch = 23, cex = 1.5)
-  points(centroid_sugarcane_30[1], centroid_sugarcane_30[2], bg = col_sugarcane_30, pch = 23, cex = 1.5)
-  
-  lines(x = c(centroid_control_30[1], centroid_pasture_30[1]),
-        y = c(centroid_control_30[2], centroid_pasture_30[2]))
-  
-  lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
-        y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
-  
-  lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
-        y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
-  
-  
-  
-  title(main = "30 m", adj = 1, line = 0.25)
-  
-  box()
+plot_com_SS1_herb_treat_30()
 
 plot_com_SS1_pred_treat_120()
 
@@ -339,7 +465,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-18-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -361,7 +487,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
@@ -528,19 +654,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
-
-Ploting species coefficients and their confidence intervals based on the
-effects identified in the analysis. The script for extracting these
-coefficients and the function for plotting is rather extensive, thus I
-will source the code on a script in the Auxiliary Scripts folder. You
-can check the original code there.
-
-``` r
-setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
-source("Auxiliary scripts/coefficients for predators.R")
-source("Auxiliary scripts/My_coefplot.R")
-```
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-24-1.png" style="display: block; margin: auto;" />
 
 These are the coefficients Coefficients for the difference of sugarcane
 communities from the others.
@@ -557,7 +671,7 @@ My_coefplot(mles = effect_SS2_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3, at.xaxis = c(2,0,-2,-4, -14, -16),break.axis = c(-6,-12))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-25-1.png" style="display: block; margin: auto;" />
 
 Ordinations focusing on isolation
 
@@ -581,7 +695,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-23-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-26-1.png" style="display: block; margin: auto;" />
 
 ## Third Survey (80 day)
 
@@ -837,7 +951,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-29-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
 
 Now the coefficients
 
@@ -867,7 +981,7 @@ My_coefplot(mles = effect_SS3_pasture_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-30-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-33-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -889,7 +1003,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-31-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-34-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -902,7 +1016,7 @@ My_coefplot(mles = effect_SS3_30_120_480,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-32-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-35-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
@@ -1098,7 +1212,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-38-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-41-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -1112,7 +1226,7 @@ My_coefplot(mles = effect_SS4_control_sugar_cane,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-39-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-42-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,4,1.25,.1), mfrow = c(2, 3))
@@ -1134,7 +1248,7 @@ plot(NA, xaxt = "n", yaxt = "n", xlim= c(0,100), ylim = c(0,100), bty = "n", yla
 legend(x = 0, y = 100, pch = c(21), legend = c("Predatory Insects"), pt.bg  = c("lightsalmon1"), bty = "n", pt.cex  = 2.5, pt.lwd   = 1.5)
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-40-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-43-1.png" style="display: block; margin: auto;" />
 
 ``` r
 par(mar = c(4,8,2,.5), cex = 0.5, mfrow = c(1,3))
@@ -1160,4 +1274,4 @@ My_coefplot(mles = effect_SS4_120_480,
             cex.axis = 1, cex.main = 1, font = 3)#, at.xaxis = c(6, 4,2,0,-2,-4, -450, -476),break.axis = c(-6,-474))
 ```
 
-<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-41-1.png" style="display: block; margin: auto;" />
+<img src="Community_Structure_Predatory_Insects_files/figure-gfm/unnamed-chunk-44-1.png" style="display: block; margin: auto;" />

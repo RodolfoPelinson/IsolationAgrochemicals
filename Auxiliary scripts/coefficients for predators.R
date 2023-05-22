@@ -9,13 +9,81 @@ com_predators_SS4 <- com_SS4[,Trait_SS4$trophic == "predator"]
 z<-qnorm(0.975, mean = 0, sd = 1)
 
 
+###################################################### All surveys #################################################################
+
+
+fit_predators_survey_1 <- gllvm(com_predators, X = data.frame(ID = ID, survey = relevel(SS, ref = "1")),
+                                              formula = ~ survey,
+                                              family = "negative.binomial",
+                                              method = "VA",
+                                              row.eff = ~ (1|ID),
+                                              n.init = 10, num.lv = 0, seed = 1:10)
+
+
+effect_1_2 <-fit_predators_survey_1$params$Xcoef[,1]
+effect_1_2_se <-fit_predators_survey_1$sd$Xcoef[,1]
+
+effect_1_2_se[which(effect_1_2_se>50)] <- 0
 
 
 
+fit_predators_survey_2 <- gllvm(com_predators, X = data.frame(ID = ID, survey = relevel(SS, ref = "2")),
+                                formula = ~ survey,
+                                family = "negative.binomial",
+                                method = "VA",
+                                row.eff = ~ (1|ID),
+                                n.init = 10, num.lv = 0, seed = 1:10)
 
-############################################################################################################################
+
+effect_2_3 <-fit_predators_survey_2$params$Xcoef[,2]
+effect_2_3_se <-fit_predators_survey_2$sd$Xcoef[,2]
+
+effect_2_3_se[which(effect_2_3_se>50)] <- 0
+
+
+
+fit_predators_survey_3 <- gllvm(com_predators, X = data.frame(ID = ID, survey = relevel(SS, ref = "3")),
+                                formula = ~ survey,
+                                family = "negative.binomial",
+                                method = "VA",
+                                row.eff = ~ (1|ID),
+                                n.init = 10, num.lv = 0, seed = 1:10)
+
+
+effect_3_4 <-fit_predators_survey_3$params$Xcoef[,3]
+effect_3_4_se <-fit_predators_survey_3$sd$Xcoef[,3]
+
+effect_3_4_se[which(effect_3_4_se>50)] <- 0
+
+
+
+effect_1_2_lower <- effect_1_2 - (z*effect_1_2_se)
+effect_1_2_upper <- effect_1_2 + (z*effect_1_2_se)
+
+effect_2_3_lower <- effect_2_3 - (z*effect_2_3_se)
+effect_2_3_upper <- effect_2_3 + (z*effect_2_3_se)
+
+effect_3_4_lower <- effect_3_4 - (z*effect_3_4_se)
+effect_3_4_upper <- effect_3_4 + (z*effect_3_4_se)
+
+
+ab_pred <- order(Trait$total_ab[which(Trait$trait == "insect_predator")], decreasing = T)
+
+effect_1_2 <- effect_1_2[ab_pred]
+effect_1_2_lower <- effect_1_2_lower[ab_pred]
+effect_1_2_upper <- effect_1_2_upper[ab_pred]
+
+effect_2_3 <- effect_2_3[ab_pred]
+effect_2_3_lower <- effect_2_3_lower[ab_pred]
+effect_2_3_upper <- effect_2_3_upper[ab_pred]
+
+effect_3_4 <- effect_3_4[ab_pred]
+effect_3_4_lower <- effect_3_4_lower[ab_pred]
+effect_3_4_upper <- effect_3_4_upper[ab_pred]
+
+
+
 ###################################################### SS2 #################################################################
-############################################################################################################################
 fit_predators_SS2_treatments<- gllvm(com_predators_SS2, X = data.frame(ID = ID_SS2_3_4,
                                                                                 treatments = relevel(treatments_SS2_3_4_contpast_sug, ref = "control_pasture")),
                                               formula = ~ treatments,
@@ -47,9 +115,7 @@ effect_SS2_control_sugar_cane_upper <- effect_SS2_control_sugar_cane_upper[ab_SS
 
 
 
-############################################################################################################################
-###################################################### SS3 #################################################################
-############################################################################################################################
+###################################################### SS3 - Treatments #################################################################
 
 #effect_SS3 of TREATMENTS
 
@@ -125,9 +191,8 @@ effect_SS3_pasture_sugar_cane_upper <- effect_SS3_pasture_sugar_cane_upper[ab_SS
 
 
 
-############################################################################################################################
-###################################################### SS3 #################################################################
-############################################################################################################################
+
+###################################################### SS3 - Isolation #################################################################
 
 #effect_SS3 of  isolation
 
@@ -176,9 +241,7 @@ effect_SS3_30_120_480_upper <- effect_SS3_30_120_480_upper[ab_SS3_pred]
 
 
 
-############################################################################################################################
 ###################################################### SS4 #################################################################
-############################################################################################################################
 
 
 fit_predators_SS4_treatments<- gllvm(com_predators_SS4, X = data.frame(ID = ID_SS2_3_4,

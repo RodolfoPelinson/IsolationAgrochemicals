@@ -11,6 +11,58 @@ col_sugarcane_30 <- "#D55E00"
 col_sugarcane_120 <- darken(col_sugarcane_30, amount = 0.25, space = "HCL")
 col_sugarcane_480 <- darken(col_sugarcane_30, amount = 0.5, space = "HCL")
 
+#All surveys
+
+plot_all_surveys <- function(){
+  plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
+  axis(1 , gap.axis = -10)
+  axis(2 , gap.axis = -10)
+  abline(h=0,v=0, lty =2)
+
+  ordiellipse(scaled_lvs$sites,
+              groups = predictors$survey,
+              draw = "polygon", border = FALSE,  col = c(col_survey_1, col_survey_2, col_survey_3, col_survey_4), kind = "sd", alpha = 50)
+
+  #ordiellipse(scaled_lvs$sites,
+  #            groups = predictors$treatments,
+  #            draw = "polygon", border = FALSE,  col = c(col_control_120, col_pasture_120, col_sugarcane_120), kind = "sd", alpha = 50)
+
+  points(scaled_lvs$sites[predictors$survey == "1" ,], bg = col_survey_1, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "2" ,], bg = col_survey_2, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "3" ,], bg = col_survey_3, pch = 21)
+  points(scaled_lvs$sites[predictors$survey == "4" ,], bg = col_survey_4, pch = 21)
+
+
+  centroid_1 <- colMeans(scaled_lvs$sites[predictors$survey == "1" ,])
+  centroid_2 <- colMeans(scaled_lvs$sites[predictors$survey == "2" ,])
+  centroid_3 <- colMeans(scaled_lvs$sites[predictors$survey == "3" ,])
+  centroid_4 <- colMeans(scaled_lvs$sites[predictors$survey == "4" ,])
+
+  #centroid_control_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "control",])
+  #centroid_pasture_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "pasture",])
+  #centroid_sugarcane_30 <- colMeans(scaled_lvs$sites[predictors$treatments == "sugar_cane",])
+
+
+  #lines(x = c(centroid_control_30[1], centroid_sugarcane_30[1]),
+  #      y = c(centroid_control_30[2], centroid_sugarcane_30[2]))
+
+  #lines(x = c(centroid_pasture_30[1], centroid_sugarcane_30[1]),
+  #      y = c(centroid_pasture_30[2], centroid_sugarcane_30[2]))
+
+
+
+  for(i in 1:nrow(scaled_lvs$new_species)){
+    points(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], cex = 4, pch = 21, bg = col[i])
+    text(x = scaled_lvs$new_species[i,1], y = scaled_lvs$new_species[i,2], labels = substr(rownames(scaled_lvs$species)[i], 1, 3), cex = 0.9)
+  }
+
+  points(centroid_1[1], centroid_1[2], bg = col_survey_1, pch = 23, cex = 1.5)
+  points(centroid_2[1], centroid_2[2], bg = col_survey_2, pch = 24, cex = 1.5)
+  points(centroid_3[1], centroid_3[2], bg = col_survey_3, pch = 22, cex = 1.5)
+  points(centroid_4[1], centroid_4[2], bg = col_survey_4, pch = 21, cex = 1.5)
+
+  box()
+}
 
 #SS1
 

@@ -188,3 +188,55 @@ sum_com_orig_SS4 <- sum_com_orig_SS4[,order(Trait_SS4_orig$total_ab, decreasing 
 
 
 
+#################
+#################
+
+
+
+my_join <- function(mat1, mat2){
+
+  mat1 <- data.frame(mat1)
+  mat2 <- data.frame(mat2)
+
+  colnames1 <- colnames(mat1)
+  colnames2 <- colnames(mat2)
+
+  add1 <- colnames2[(colnames2 %in% colnames1) == FALSE]
+  add2 <- colnames1[(colnames1 %in% colnames2) == FALSE]
+
+  add1_mat <- matrix(NA, ncol = length(add1), nrow = nrow(mat1))
+  colnames(add1_mat) <- add1
+
+  add2_mat <- matrix(NA, ncol = length(add2), nrow = nrow(mat2))
+  colnames(add2_mat) <- add2
+
+
+  new_mat1 <- data.frame(mat1, add1_mat)
+  new_mat1 <- new_mat1[,order(colnames(new_mat1))]
+
+  new_mat2 <- data.frame(mat2, add2_mat)
+  new_mat2 <- new_mat2[,order(colnames(new_mat2))]
+
+  new_matrix <- rbind(new_mat1,new_mat2)
+
+  return(new_matrix)
+}
+
+
+NA_to_zero <- function(com){
+  for(i in 1:dim(com)[1]){
+    for(j in 1:dim(com)[2]){
+      if (is.na(com[i,j])){com[i,j] <- 0}
+    }
+  }
+  return(com)
+}
+
+
+sum_com <- my_join(sum_com_SS1, sum_com_SS2)
+sum_com <- my_join(sum_com, sum_com_SS3)
+sum_com <- my_join(sum_com, sum_com_SS4)
+
+sum_com <- NA_to_zero(sum_com)
+
+
