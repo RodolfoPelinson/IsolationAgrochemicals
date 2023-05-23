@@ -52,8 +52,15 @@ First, lets see what is the best probability distribution to model the data
 ```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
 par(cex = 0.6)
 
-data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
-
+data <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS,
+                         survey_12_3_4 = SS_12_3_4,
+                         survey_1_2_34 = SS_1_2_34,
+                         survey_1_23_4 = SS_1_23_4,
+                         survey_123_4 = SS_123_4,
+                         survey_1_234 = SS_1_234)
 #Gaussian
 mod_herb_det_G <- glmmTMB(com_herb_det_ab ~ isolation * treatments * survey  + (1|ID), family = "gaussian", data = data)
 simulationResiduals_mod_herb_det_G <- simulateResiduals(fittedModel = mod_herb_det_G, plot = F, seed = 3, n = 1000)
@@ -99,8 +106,54 @@ model_selection_herb_det
 ```
 It seems that the an additive effect of treatments and survey are equally plausible.
 
+Lets see of all surveys are different
+```{r}
+mod_herb_det_survey_1_2_3_4 <- glmmTMB(com_herb_det_ab ~ survey * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_12_3_4 <- glmmTMB(com_herb_det_ab ~ survey_12_3_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_2_34 <- glmmTMB(com_herb_det_ab ~ survey_1_2_34 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_23_4 <- glmmTMB(com_herb_det_ab ~ survey_1_23_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_123_4 <- glmmTMB(com_herb_det_ab ~ survey_123_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_234 <- glmmTMB(com_herb_det_ab ~ survey_1_234 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
 
+model_selection_herb_det_survey <- aictab(list(mod_herb_det_survey_1_2_3_4,
+                                        mod_herb_det_survey_12_3_4,
+                                        mod_herb_det_survey_1_2_34,
+                                        mod_herb_det_survey_1_23_4,
+                                        mod_herb_det_survey_123_4,
+                                        mod_herb_det_survey_1_234),
+                                        modnames = c("1 # 2 # 3 # 4",
+                                                              "(1 = 2) # 3 # 4",
+                                                              "1 # 2 # (3 = 4)",
+                                                              "1 # (2 = 3) # 4",
+                                                              "(1 = 2 = 3) # 4",
+                                                              "1 # (2 = 3 = 4)"), sort = FALSE)
 
+model_selection_herb_det_survey
+```
+It looks like all surveys are different.
+
+Ploting it:
+```{r, dpi=150, fig.width=3, fig.height=3, fig.align = 'center', warning=FALSE}
+col_survey_1 <- "#0072B2"
+col_survey_2 <- "#CC79A7"
+col_survey_3 <- "#D55E00"
+col_survey_4 <- "#E69F00"
+
+par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
+boxplot(com_herb_det_ab ~ SS, outline = T,
+        ylab = "", xlab = "", at = c(1,2,4,8), lwd = 0.5,
+        main = "", xaxt="n", yaxt = "n", range = 1.5,
+        col = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), lty = 1,
+        pch = 21, bg = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), cex = 1)
+        #ylim = c(0,140))
+
+title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
+#title(main= "Predatory Insects", adj = 1)
+axis(2, cex.axis = 1, gap.axis = -1)
+axis(1,labels = c("20","40","80", "160"), cex.axis = 1.25, at =c(1,2,4,8), line = 0, tick = F, gap.axis = -1)
+title(xlab="Time (days)", line=2.5, cex.lab=1.52)
+axis(1,labels = rep("",4), cex.axis = 0.8, at =c(1,2,4,8), line = 0,tick = T)
+```
 
 ## First Survey (20 day)
 ```{r, warning=FALSE}

@@ -79,8 +79,15 @@ data
 ``` r
 par(cex = 0.6)
 
-data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
-
+data <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS,
+                         survey_12_3_4 = SS_12_3_4,
+                         survey_1_2_34 = SS_1_2_34,
+                         survey_1_23_4 = SS_1_23_4,
+                         survey_123_4 = SS_123_4,
+                         survey_1_234 = SS_1_234)
 #Gaussian
 mod_herb_det_G <- glmmTMB(com_herb_det_ab ~ isolation * treatments * survey  + (1|ID), family = "gaussian", data = data)
 simulationResiduals_mod_herb_det_G <- simulateResiduals(fittedModel = mod_herb_det_G, plot = F, seed = 3, n = 1000)
@@ -172,6 +179,71 @@ model_selection_herb_det
 
 It seems that the an additive effect of treatments and survey are
 equally plausible.
+
+Lets see of all surveys are different
+
+``` r
+mod_herb_det_survey_1_2_3_4 <- glmmTMB(com_herb_det_ab ~ survey * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_12_3_4 <- glmmTMB(com_herb_det_ab ~ survey_12_3_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_2_34 <- glmmTMB(com_herb_det_ab ~ survey_1_2_34 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_23_4 <- glmmTMB(com_herb_det_ab ~ survey_1_23_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_123_4 <- glmmTMB(com_herb_det_ab ~ survey_123_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_herb_det_survey_1_234 <- glmmTMB(com_herb_det_ab ~ survey_1_234 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+
+model_selection_herb_det_survey <- aictab(list(mod_herb_det_survey_1_2_3_4,
+                                        mod_herb_det_survey_12_3_4,
+                                        mod_herb_det_survey_1_2_34,
+                                        mod_herb_det_survey_1_23_4,
+                                        mod_herb_det_survey_123_4,
+                                        mod_herb_det_survey_1_234),
+                                        modnames = c("1 # 2 # 3 # 4",
+                                                              "(1 = 2) # 3 # 4",
+                                                              "1 # 2 # (3 = 4)",
+                                                              "1 # (2 = 3) # 4",
+                                                              "(1 = 2 = 3) # 4",
+                                                              "1 # (2 = 3 = 4)"), sort = FALSE)
+
+model_selection_herb_det_survey
+```
+
+    ## 
+    ## Model selection based on AICc:
+    ## 
+    ##                  K    AICc Delta_AICc AICcWt       LL
+    ## 1 # 2 # 3 # 4   38 4963.72       0.00      1 -2441.15
+    ## (1 = 2) # 3 # 4 29 5115.78     152.06      0 -2527.32
+    ## 1 # 2 # (3 = 4) 29 5025.80      62.08      0 -2482.33
+    ## 1 # (2 = 3) # 4 29 5301.22     337.50      0 -2620.04
+    ## (1 = 2 = 3) # 4 20 5329.05     365.33      0 -2643.78
+    ## 1 # (2 = 3 = 4) 20 5398.41     434.69      0 -2678.46
+
+It looks like all surveys are different.
+
+Ploting it:
+
+``` r
+col_survey_1 <- "#0072B2"
+col_survey_2 <- "#CC79A7"
+col_survey_3 <- "#D55E00"
+col_survey_4 <- "#E69F00"
+
+par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
+boxplot(com_herb_det_ab ~ SS, outline = T,
+        ylab = "", xlab = "", at = c(1,2,4,8), lwd = 0.5,
+        main = "", xaxt="n", yaxt = "n", range = 1.5,
+        col = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), lty = 1,
+        pch = 21, bg = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), cex = 1)
+        #ylim = c(0,140))
+
+title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
+#title(main= "Predatory Insects", adj = 1)
+axis(2, cex.axis = 1, gap.axis = -1)
+axis(1,labels = c("20","40","80", "160"), cex.axis = 1.25, at =c(1,2,4,8), line = 0, tick = F, gap.axis = -1)
+title(xlab="Time (days)", line=2.5, cex.lab=1.52)
+axis(1,labels = rep("",4), cex.axis = 0.8, at =c(1,2,4,8), line = 0,tick = T)
+```
+
+<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ## First Survey (20 day)
 
@@ -273,7 +345,7 @@ arrows(x0 = c(1, 5, 9) - 0.4,
 legend(x = 7, y = 100, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
 ```
 
-<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-8-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
@@ -424,7 +496,7 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
        code = 0, col = c("grey0","grey0","grey50",   "grey0","grey0","grey50",   "grey0","grey0","grey50"))
 ```
 
-<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 ## Third Survey (80 day)
 
@@ -569,7 +641,7 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
        code = 0, col = c("grey50","grey0","grey50",   "grey50","grey0","grey50",   "grey50","grey0","grey50"))
 ```
 
-<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-18-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
@@ -843,4 +915,4 @@ arrows(x0 = c(1, 2,3) - 0.4,
        code = 0, col = c("grey0","grey50","grey0"))
 ```
 
-<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-20-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-22-1.png" style="display: block; margin: auto;" />

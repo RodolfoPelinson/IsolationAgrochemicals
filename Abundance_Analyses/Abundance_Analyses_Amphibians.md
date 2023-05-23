@@ -80,8 +80,15 @@ data
 ``` r
 par(cex = 0.6)
 
-data <- data.frame(isolation = isolation_all, treatments = treatments_all, ID, survey = SS)
-
+data <- data.frame(ID = ID,
+                         treatments = treatments_all,
+                         isolation = isolation_all,
+                         survey = SS,
+                         survey_12_3_4 = SS_12_3_4,
+                         survey_1_2_34 = SS_1_2_34,
+                         survey_1_23_4 = SS_1_23_4,
+                         survey_123_4 = SS_123_4,
+                         survey_1_234 = SS_1_234)
 #Gaussian
 mod_amphibian_G <- glmmTMB(com_amphibian_ab ~ isolation * treatments * survey + (1|ID), family = "gaussian", data = data)
 simulationResiduals_mod_amphibian_G <- simulateResiduals(fittedModel = mod_amphibian_G, plot = F, seed = 3, n = 1000)
@@ -173,6 +180,72 @@ model_selection_amphibian
 
 It seems the effect of treatments are different in each survey.
 
+Lets see of all surveys are different
+
+``` r
+mod_amphibian_survey_1_2_3_4 <- glmmTMB(com_amphibian_ab ~ survey * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_12_3_4 <- glmmTMB(com_amphibian_ab ~ survey_12_3_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_1_2_34 <- glmmTMB(com_amphibian_ab ~ survey_1_2_34 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_1_23_4 <- glmmTMB(com_amphibian_ab ~ survey_1_23_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_123_4 <- glmmTMB(com_amphibian_ab ~ survey_123_4 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+mod_amphibian_survey_1_234 <- glmmTMB(com_amphibian_ab ~ survey_1_234 * (isolation * treatments) + (1|ID), family = nbinom2(link = "log"), data = data)
+
+model_selection_amphibian_survey <- aictab(list(mod_amphibian_survey_1_2_3_4,
+                                        mod_amphibian_survey_12_3_4,
+                                        mod_amphibian_survey_1_2_34,
+                                        mod_amphibian_survey_1_23_4,
+                                        mod_amphibian_survey_123_4,
+                                        mod_amphibian_survey_1_234),
+                                        modnames = c("1 # 2 # 3 # 4",
+                                                              "(1 = 2) # 3 # 4",
+                                                              "1 # 2 # (3 = 4)",
+                                                              "1 # (2 = 3) # 4",
+                                                              "(1 = 2 = 3) # 4",
+                                                              "1 # (2 = 3 = 4)"), sort = FALSE)
+
+model_selection_amphibian_survey
+```
+
+    ## 
+    ## Model selection based on AICc:
+    ## 
+    ##                  K    AICc Delta_AICc AICcWt       LL
+    ## 1 # 2 # 3 # 4   38 3121.02      10.90      0 -1519.80
+    ## (1 = 2) # 3 # 4 29 3110.12       0.00      1 -1524.49
+    ## 1 # 2 # (3 = 4) 29 3190.23      80.10      0 -1564.55
+    ## 1 # (2 = 3) # 4 29 3146.40      36.28      0 -1542.63
+    ## (1 = 2 = 3) # 4 20 3137.77      27.65      0 -1548.14
+    ## 1 # (2 = 3 = 4) 20 3196.64      86.52      0 -1577.58
+
+It looks like the first two surveys are similar in terms of abundance of
+amphibians, and effects of treatments in each abundance.
+
+Ploting it:
+
+``` r
+col_survey_1 <- "#0072B2"
+col_survey_2 <- "#CC79A7"
+col_survey_3 <- "#D55E00"
+col_survey_4 <- "#E69F00"
+
+par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
+boxplot(com_amphibian_ab ~ SS, outline = T,
+        ylab = "", xlab = "", at = c(1,2,4,8), lwd = 0.5,
+        main = "", xaxt="n", yaxt = "n", range = 1.5,
+        col = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), lty = 1,
+        pch = 21, bg = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), cex = 1)
+        #ylim = c(0,140))
+
+title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
+#title(main= "Predatory Insects", adj = 1)
+axis(2, cex.axis = 1, gap.axis = -1)
+axis(1,labels = c("20","40","80", "160"), cex.axis = 1.25, at =c(1,2,4,8), line = 0, tick = F, gap.axis = -1)
+title(xlab="Time (days)", line=2.5, cex.lab=1.52)
+axis(1,labels = rep("",4), cex.axis = 0.8, at =c(1,2,4,8), line = 0,tick = T)
+```
+
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+
 ## First Survey (20 day)
 
 ``` r
@@ -235,7 +308,7 @@ axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 
 legend(x = 1, y = 100, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 ## Second Survey (40 day)
 
@@ -337,7 +410,7 @@ arrows(x0 = c(1, 5, 9) - 0.4,
        code = 0, col = c("grey50","grey0","grey0"))
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
 
 ## Third Survey (80 day)
 
@@ -443,7 +516,7 @@ arrows(x0 = c(1, 2,3, 5, 6,7, 9,10,11) - 0.4,
        code = 0, col = c("grey50","grey50","grey0",   "grey50","grey50","grey0",   "grey50","grey50","grey0"))
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 
 ## Fourth Survey (160 day)
 
@@ -506,4 +579,4 @@ axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line 
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 ```
 
-<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="Abundance_Analyses_Amphibians_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
