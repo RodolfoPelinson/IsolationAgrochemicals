@@ -1,5 +1,5 @@
 ---
-title: "Community Structure - Herbivore and Detritivores"
+title: "Community Structure - Predators"
 author: "Rodolfo Pelinson"
 date: "27/12/2022"
 output: github_document
@@ -13,11 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r echo = TRUE, message=FALSE, warning=FALSE}
-library(vegan)
-library(gllvm)
-package_version("gllvm")
-packageVersion("gllvm")
-attributes(citation("gllvm"))
+library(vegan); packageDescription("vegan", fields = "Version")
+library(gllvm); packageDescription("gllvm", fields = "Version")
 ```
 
 ```{r include = FALSE}

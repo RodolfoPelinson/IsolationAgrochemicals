@@ -1,12 +1,19 @@
-Community Structure - Herbivore and Detritivores
+Community Structure - Predators
 ================
 Rodolfo Pelinson
 27/12/2022
 
 ``` r
-library(vegan)
-library(gllvm)
+library(vegan); packageDescription("vegan", fields = "Version")
 ```
+
+    ## [1] "2.6-2"
+
+``` r
+library(gllvm); packageDescription("gllvm", fields = "Version")
+```
+
+    ## [1] "1.3.1"
 
 Before anything, here are three functions that will automate most of the
 model selection procedures that we will be doing. The script would be
