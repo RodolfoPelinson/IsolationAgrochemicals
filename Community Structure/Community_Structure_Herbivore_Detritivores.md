@@ -1126,7 +1126,7 @@ My_coefplot(mles = effect_SS3_480_control_sugar_cane,
             lower = effect_SS3_480_control_sugar_cane_lower,
             upper = effect_SS3_480_control_sugar_cane_upper,
             species_labels = species_labels_SS3,  xlab = "Effect on abundance", main = "Sav./Past. vs Sug. (480 m)",
-            cex.axis = 1, cex.main = 1, font = c(1,3,3,1,3,3,3,3,1,3))#, at.xaxis = c(10,0,-10, -20,-30, -40, -130),break.axis = c(-40,-480))
+            cex.axis = 1, cex.main = 1, font = c(1,3,3,1,3,3,3,3,1,3))
 ```
 
 <img src="Community_Structure_Herbivore_Detritivores_files/figure-gfm/unnamed-chunk-37-1.png" style="display: block; margin: auto;" />

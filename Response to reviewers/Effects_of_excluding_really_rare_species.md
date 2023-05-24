@@ -1,4 +1,4 @@
-Response to Reviewers - Exclusion of rare species
+Exclusion of rare species
 ================
 Rodolfo Pelinson
 13/05/2023
@@ -93,7 +93,7 @@ Lets plot and analyse data including this species:
 How many latent variables do we need?
 
 ``` r
-n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
+n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(1,2,3),
                                     formula = ~ treatments * isolation,
                                     row.eff = ~ (1|ID),
                                     y = com_herb_det_SS3, X = SS3_predictors,
@@ -101,14 +101,13 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 ```
 
     ##   model     AICc delta_AICc  df nobs
-    ## 1     0 6019.846    0.00000 111 1980
-    ## 2     1 6044.697   24.85116 122 1980
-    ## 3     2 6066.524   46.67787 132 1980
-    ## 4     3 6087.318   67.47192 141 1980
+    ## 1     1 6044.697    0.00000 122 1980
+    ## 2     2 6066.524   21.82672 132 1980
+    ## 3     3 6087.318   42.62076 141 1980
 
 It looks that zero latent variables is the way to go.
 
@@ -131,9 +130,9 @@ model_herb_det_selection_SS3 <- run_multiple_gllvm(formulas = list(~ treatments,
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 5, seed = 1:5)
 
-model_herb_det_selection_SS3
+model_herb_det_selection_SS3$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc  df nobs
@@ -143,7 +142,7 @@ model_herb_det_selection_SS3
     ## 4 Isolation + Treatments 6013.910   0.000000  67 1980
     ## 5 Isolation * Treatments 6019.846   5.936097 111 1980
 
-It seems like there are only aditive effects of isolation and
+It seems like there are only additive effects of isolation and
 agrochemical treatments.
 
 Ploting the ordinations:
@@ -224,7 +223,7 @@ n_latent_tab_SS3 <- run_multiple_lv(num.lv = c(0,1,2,3),
                                     method = "VA",
                                     n.init = 10, seed = 11:20)
 
-n_latent_tab_SS3
+n_latent_tab_SS3$AICc_tab
 ```
 
     ##   model     AICc delta_AICc  df nobs
@@ -254,9 +253,9 @@ model_herb_det_selection_SS3_excluding <- run_multiple_gllvm(formulas = list(~ t
                                                     row.eff = ~ (1|ID),
                                                     family = "negative.binomial",
                                                     method = "VA",
-                                                    n.init = 10, seed = 11:20)
+                                                    n.init = 5, seed = 1:5)
 
-model_herb_det_selection_SS3_excluding
+model_herb_det_selection_SS3_excluding$AICc_tab
 ```
 
     ##                    model     AICc delta_AICc  df nobs
@@ -322,47 +321,18 @@ legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.
 
 Interesting, the ordinations are basically the same ones, however, the
 simple addition of one species that only has one occurrence added enough
-noise to make interactive effects of treatments desapear when we did a
+noise to make interactive effects of treatments disappear when we did a
 model selection based on AICc.
 
 Why did this happened? This is likely due to the fact that we have
-realtively small communities, with about 10 or less species. In this
+relatively small communities, with about 10 or less species. In this
 case, the inclusion of one more species with little to no information
-regarding the effect of treatments on its abudance increasead the AIC
+regarding the effect of treatments on its abundance increased the AIC
 values of more complex models. That makes sense since we are trying to
 estimate parameters of a complex model (isolation \* agrochemicals) for
 a species with only one occurrence. In this case, it is clear that AIC
-will heavily penalyze complex models for these species. For example, see
+will heavily penalize complex models for these species. For example, see
 what happens to AIC values when we try to model only the abundance of
 Elachistocleis sp. as a function of treatments and do model selection.
 The AIC values of the model with the two-way interaction is heavely
 penalized.
-
-``` r
-library(glmmTMB)
-library(AICcmodavg)
-
-SS3_predictors <- data.frame(ID = ID_SS2_3_4,
-                             treatments = treatments_SS2_3_4,
-                             isolation = isolation_SS2_3_4)
-
-mod_no_effect <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ 1 + (1|ID), data = SS3_predictors)
-mod_treatments <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + (1|ID), data = SS3_predictors)
-mod_isolation <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ isolation + (1|ID), data = SS3_predictors)
-mod_aditive <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments + isolation + (1|ID), data = SS3_predictors)
-mod_interaction <- glmmTMB(com_SS3_orig$Elachistocleis.sp. ~ treatments * isolation + (1|ID), data = SS3_predictors)
-
-aictab(list(mod_no_effect, mod_treatments, mod_isolation, mod_aditive, mod_interaction), modnames = c("No Effect","Treatments","Isolation","Aditive","Interaction"))
-```
-
-    ## 
-    ## Model selection based on AICc:
-    ## 
-    ##              K    AICc Delta_AICc AICcWt Cum.Wt     LL
-    ## No Effect    3 -418.78       0.00   0.56   0.56 212.46
-    ## Isolation    5 -416.59       2.19   0.19   0.75 213.47
-    ## Treatments   5 -416.59       2.19   0.19   0.93 213.47
-    ## Aditive      7 -414.33       4.45   0.06   0.99 214.49
-    ## Interaction 11 -409.58       9.21   0.01   1.00 216.57
-
-### Therefore, we chose to exclude really rare species from all our analyses of community structure.

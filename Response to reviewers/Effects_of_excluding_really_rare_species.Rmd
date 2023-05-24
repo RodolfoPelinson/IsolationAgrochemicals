@@ -1,5 +1,5 @@
 ---
-title: "Response to Reviewers - Exclusion of rare species"
+title: "Exclusion of rare species"
 author: "Rodolfo Pelinson"
 date: "13/05/2023"
 output: github_document
@@ -268,7 +268,7 @@ legend(x = 0, y = 100, pch = c(21, 21), legend = c("Insects", "Amphibians"), pt.
 
 ## Conclusion
 
-Interesting, the ordinations are basically the same ones, however, the simple addition of one species that only has one occurrence added enough noise to make interactive effects of treatments desapear when we did a model selection based on AICc. 
+Interesting, the ordinations are basically the same ones, however, the simple addition of one species that only has one occurrence added enough noise to make interactive effects of treatments disappear when we did a model selection based on AICc. 
 
 Why did this happened?
-This is likely due to the fact that we have realtively small communities, with about 10 or less species. In this case, the inclusion of one more species with little to no information regarding the effect of treatments on its abudance increasead the AIC values of more complex models. That makes sense since we are trying to estimate parameters of a complex model (isolation * agrochemicals) for a species with only one occurrence. In this case, it is clear that AIC will heavily penalyze complex models for these species. For example, see what happens to AIC values when we try to model only the abundance of Elachistocleis sp. as a function of treatments and do model selection. The AIC values of the model with the two-way interaction is heavely penalized.
+This is likely due to the fact that we have relatively small communities, with about 10 or less species. In this case, the inclusion of one more species with little to no information regarding the effect of treatments on its abundance increased the AIC values of more complex models. That makes sense since we are trying to estimate parameters of a complex model (isolation * agrochemicals) for a species with only one occurrence. In this case, it is clear that AIC will heavily penalize complex models for these species. For example, see what happens to AIC values when we try to model only the abundance of Elachistocleis sp. as a function of treatments and do model selection. The AIC values of the model with the two-way interaction is heavely penalized.

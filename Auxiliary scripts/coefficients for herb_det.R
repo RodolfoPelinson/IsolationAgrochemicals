@@ -93,7 +93,7 @@ fit_herb_det_SS2_treatments<- gllvm(com_herb_det_SS2, X = data.frame(ID = ID_SS2
                                     family = "negative.binomial",
                                     method = "VA",
                                     row.eff = ~ (1|ID),
-                                    n.init = 20, num.lv = 0, seed = 1:20)
+                                    n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -129,7 +129,7 @@ fit_herb_det_SS3_treatments_control <- gllvm(com_herb_det_SS3, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -162,7 +162,7 @@ fit_herb_det_SS3_treatments_control <- gllvm(com_herb_det_SS3, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -196,7 +196,7 @@ fit_herb_det_SS3_treatments_control <- gllvm(com_herb_det_SS3, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS3_480_control_sugar_cane <-fit_herb_det_SS3_treatments_control$params$Xcoef[,1]
@@ -220,7 +220,7 @@ effect_SS3_480_control_sugar_cane_upper <- effect_SS3_480_control_sugar_cane_upp
 
 
 
-###################################################### SS4 -Treatments #################################################################
+###################################################### SS4 - Treatments #################################################################
 
 
 
@@ -234,7 +234,7 @@ fit_herb_det_SS4_treatments_control <- gllvm(com_herb_det_SS4, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20)
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -272,7 +272,7 @@ fit_herb_det_SS4_treatments_pasture <- gllvm(com_herb_det_SS4, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20)
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS4_30_pasture_sugar_cane <-fit_herb_det_SS4_treatments_pasture$params$Xcoef[,2]
@@ -323,7 +323,7 @@ fit_herb_det_SS4_treatments_control <- gllvm(com_herb_det_SS4, X = data.frame(ID
                                              family = "negative.binomial",
                                              method = "VA",
                                              row.eff = ~ (1|ID),
-                                             n.init = 20, num.lv = 0, seed = 1:20)
+                                             n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -393,7 +393,7 @@ fit_herb_det_SS1_isolation_30480 <- gllvm(com_herb_det_SS1, X = data.frame(ID = 
                                            family = "negative.binomial",
                                            method = "VA",
                                            #row.eff = ~ (1|ID),
-                                           n.init = 20, num.lv = 0, seed = 1:20)
+                                           n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -440,7 +440,7 @@ fit_herb_det_SS2_isolation_30_120 <- gllvm(com_herb_det_SS2, X = data.frame(ID =
                                            family = "negative.binomial",
                                            method = "VA",
                                            row.eff = ~ (1|ID),
-                                           n.init = 20, num.lv = 0, seed = 1:20)
+                                           n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS2_30_120 <-fit_herb_det_SS2_isolation_30_120$params$Xcoef[,1]
@@ -502,7 +502,7 @@ fit_herb_det_SS2_isolation_120_480 <- gllvm(com_herb_det_SS2, X = data.frame(ID 
                                            family = "negative.binomial",
                                            method = "VA",
                                            row.eff = ~ (1|ID),
-                                           n.init = 20, num.lv = 0, seed = 1:20)
+                                           n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS2_120_480 <-fit_herb_det_SS2_isolation_120_480$params$Xcoef[,2]
@@ -542,7 +542,7 @@ fit_herb_det_SS3_isolation_30_120_control <- gllvm(com_herb_det_SS3, X = data.fr
                                            family = "negative.binomial",
                                            method = "VA",
                                            row.eff = ~ (1|ID),
-                                           n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                           n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -586,7 +586,7 @@ fit_herb_det_SS3_isolation_30_pasture <- gllvm(com_herb_det_SS3, X = data.frame(
                                                    family = "negative.binomial",
                                                    method = "VA",
                                                    row.eff = ~ (1|ID),
-                                                   n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                                   n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -613,7 +613,7 @@ fit_herb_det_SS3_isolation_120_pasture <- gllvm(com_herb_det_SS3, X = data.frame
                                                    family = "negative.binomial",
                                                    method = "VA",
                                                    row.eff = ~ (1|ID),
-                                                   n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                                   n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS3_pasture_120_480 <-fit_herb_det_SS3_isolation_120_pasture$params$Xcoef[,2]
@@ -671,7 +671,7 @@ fit_herb_det_SS3_isolation_30_120_sugar_cane <- gllvm(com_herb_det_SS3, X = data
                                                    family = "negative.binomial",
                                                    method = "VA",
                                                    row.eff = ~ (1|ID),
-                                                   n.init = 20, num.lv = 0, seed = 1:20, control = list(optimizer = "nlminb"))
+                                                   n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -724,7 +724,7 @@ fit_herb_det_SS4_isolation_30_120_control <- gllvm(com_herb_det_SS4, X = data.fr
                                                    family = "negative.binomial",
                                                    method = "VA",
                                                    row.eff = ~ (1|ID),
-                                                   n.init = 20, num.lv = 0, seed = 1:20)
+                                                   n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -764,7 +764,7 @@ fit_herb_det_SS4_isolation_30_pasture <- gllvm(com_herb_det_SS4, X = data.frame(
                                                family = "negative.binomial",
                                                method = "VA",
                                                row.eff = ~ (1|ID),
-                                               n.init = 20, num.lv = 0, seed = 1:20)
+                                               n.init = 10, num.lv = 0, seed = 1:10)
 
 
 
@@ -791,7 +791,7 @@ fit_herb_det_SS4_isolation_120_pasture <- gllvm(com_herb_det_SS4, X = data.frame
                                                 family = "negative.binomial",
                                                 method = "VA",
                                                 row.eff = ~ (1|ID),
-                                                n.init = 20, num.lv = 0, seed = 1:20)
+                                                n.init = 10, num.lv = 0, seed = 1:10)
 
 
 effect_SS4_pasture_120_480 <-fit_herb_det_SS4_isolation_120_pasture$params$Xcoef[,2]
@@ -844,7 +844,7 @@ fit_herb_det_SS4_isolation_30_120_sugar_cane <- gllvm(com_herb_det_SS4, X = data
                                                       family = "negative.binomial",
                                                       method = "VA",
                                                       row.eff = ~ (1|ID),
-                                                      n.init = 20, num.lv = 0, seed = 1:20)
+                                                      n.init = 10, num.lv = 0, seed = 1:10)
 
 
 

@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r echo = TRUE, message=FALSE, warning=FALSE}
 library(vegan)
 library(gllvm)
+package_version("gllvm")
+packageVersion("gllvm")
+attributes(citation("gllvm"))
 ```
 
 ```{r include = FALSE}
@@ -26,33 +29,13 @@ source("Auxiliary scripts/Ordination_plots.R")
 
 
 Before anything, here are three functions that will automate most of the model selection procedures that we will be doing. The script would be gigantic without them.
-
-This first one is just to make a model selection table based on AICc for gllvm models. All functions rely on the gllvm function from the `gllvm` version 1.3.1 (it may need adjustments for other versions).
 ```{r}
 setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/gllvm_AICc_tab.R")
-```
-
-This one is to run multiple gllvms with different number of latent variables and perform model selection. Its useful to find the ideal number of latent variables necessary to accurately account for correlations (dependencies) in species co-occurrences not caused by our treatments.
-```{r}
-setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/run_multiple_lv.R")
-```
-
-This is to automate running multiple gllvms and perform model selection
-
-```{r}
-setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/run_multiple_gllvm.R")
-```
-
-
-This is for getting scaled latent variables for plotting model based ordinations. I took most of code from the plotting functions from the `gllvm` package.
-```{r}
-setwd("C:/Users/rodol/OneDrive/Trabalho/Papers/Analysis/IsolationAgrochemicals")
 source("Auxiliary scripts/get_scaled_lvs.R")
 ```
-
 
 
 # Herbivores and Detritivores
