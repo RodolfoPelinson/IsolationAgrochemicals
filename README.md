@@ -26,11 +26,11 @@ These are the same analysis as above (only the main ones) but using different ap
 [Total abundance of amphibians insects - Comparison of different approaches](https://github.com/RodolfoPelinson/IsolationAgrochemicals/blob/master/Response%20to%20reviewers/Abundance_Analyses_Amphibians_approach_comparison.md)  
 [Community structure of predators - Comparison of different approaches](https://github.com/RodolfoPelinson/IsolationAgrochemicals/blob/master/Response%20to%20reviewers/Community_Structure_Predators_approach_comparison.md)  
 [Community structure of non-predators - Comparison of different approaches](https://github.com/RodolfoPelinson/IsolationAgrochemicals/blob/master/Response%20to%20reviewers/Community_Structure_Herbivore_Detritivores_approach_comparison.md)  
-\  
+  
 
 This is a simulation of the effect of pooling samples together:  
 [Effect of pooling samples together](https://github.com/RodolfoPelinson/IsolationAgrochemicals/blob/master/Response%20to%20reviewers/Effect_of_pooling_samples_together.md)
-\  
+  
    
 This is an example of why we excluded really rare species before analyzing our data.  
 [Effect of excluding rare species](https://github.com/RodolfoPelinson/IsolationAgrochemicals/blob/master/Response%20to%20reviewers/Effects_of_excluding_really_rare_species.md)
