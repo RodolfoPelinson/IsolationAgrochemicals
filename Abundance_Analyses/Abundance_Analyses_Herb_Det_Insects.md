@@ -228,7 +228,7 @@ col_survey_3 <- "#D55E00"
 col_survey_4 <- "#E69F00"
 
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
-boxplot(com_herb_det_ab ~ SS, outline = T,
+boxplot(com_herb_det_ab ~ SS, outline = F,
         ylab = "", xlab = "", at = c(1,2,4,8), lwd = 0.5,
         main = "", xaxt="n", yaxt = "n", range = 1.5,
         col = rep(c(col_survey_1, col_survey_2, col_survey_3, col_survey_4),3), lty = 1,
@@ -316,12 +316,12 @@ col_pasture <- "#DDCC77"
 col_control <- "#88CCEE"
 
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
-boxplot(com_herb_det_ab_SS1 ~ treatments_SS1*isolation_SS1, outline = T,
+boxplot(com_herb_det_ab_SS1 ~ treatments_SS1*isolation_SS1, outline = F,
         ylab = "", xlab = "", at = c(1,2,3, 5,6,7, 9,10,11), lwd = 0.5,
         main = "", xaxt="n", yaxt = "n", range = 1.5,
         col = rep(c(col_control, col_pasture, col_sugarcane),3), lty = 1,
         pch = 21, bg = rep(c(col_control, col_pasture, col_sugarcane),3), cex = 1,
-ylim = c(0,150))
+ylim = c(0,400))
 
 title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
 #title(main= "Predatory Insects", adj = 1)
@@ -330,7 +330,7 @@ axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line 
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 
 
-position1 <- 150
+position1 <- 400
 text(y = rep(position1, 3),x = c(2, 6, 10),
      labels = c("b","a","a"),
      cex = 1, adj = c(0.5,0.5),
@@ -342,7 +342,7 @@ arrows(x0 = c(1, 5, 9) - 0.4,
        y1 = rep(position1*0.95, 9),
        code = 0, col = c("grey0","grey50","grey50"))
 
-legend(x = 7, y = 100, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
+legend(x = 1, y = 300, fill = c(col_control, col_pasture, col_sugarcane), legend = c("Control", "Pasture", "Sugarcane"), cex = 1)
 ```
 
 <img src="Abundance_Analyses_Herb_Det_Insects_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
@@ -454,12 +454,12 @@ isolation is different from the 30m.
 
 ``` r
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
-boxplot(com_herb_det_ab_SS2 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = T,
+boxplot(com_herb_det_ab_SS2 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = F,
         ylab = "", xlab = "", at = c(1,2,3, 5,6,7, 9,10,11), lwd = 0.5,
         main = "", xaxt="n", yaxt = "n", range = 1.5,
         col = rep(c(col_control, col_pasture, col_sugarcane),3), lty = 1,
         pch = 21, bg = rep(c(col_control, col_pasture, col_sugarcane),3), cex = 1,
-        ylim = c(0,230))
+        ylim = c(0,400))
 
 title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
 #title(main= "Predatory Insects", adj = 1)
@@ -468,7 +468,7 @@ axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line 
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 
 
-position1 <- 230
+position1 <- 400
 text(y = rep(position1, 3),x = c(2, 6, 10),
      labels = c("a","ab","b"),
      cex = 1, adj = c(0.5,0.5),
@@ -600,12 +600,12 @@ Ploting it
 ``` r
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
 
-boxplot(com_herb_det_ab_SS3 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = T,
+boxplot(com_herb_det_ab_SS3 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = F,
         ylab = "", xlab = "", at = c(1,2,3, 5,6,7, 9,10,11), lwd = 0.5,
         main = "", xaxt="n", yaxt = "n", range = 1.5,
         col = rep(c(col_control, col_pasture, col_sugarcane),3), lty = 1,
         pch = 21, bg = rep(c(col_control, col_pasture, col_sugarcane),3), cex = 1,
-        ylim = c(0,700))
+        ylim = c(0,400))
 
 title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
 #title(main= "Predatory Insects", adj = 1)
@@ -613,7 +613,7 @@ axis(2, cex.axis = 1, gap.axis = -1)
 axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line = 0.5, tick = F, gap.axis = -1)
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 
-position1 <- 700
+position1 <- 400
 text(y = rep(position1, 3),x = c(2, 6, 10),
      labels = c("a","a","b"),
      cex = 1, adj = c(0.5,0.5),
@@ -888,12 +888,12 @@ sugarcane ponds. In both, 30m is different from 120 and 480m.
 ``` r
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
 
-boxplot(com_herb_det_ab_SS4 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = T,
+boxplot(com_herb_det_ab_SS4 ~ treatments_SS2_3_4*isolation_SS2_3_4, outline = F,
         ylab = "", xlab = "", at = c(1,2,3, 5,6,7, 9,10,11), lwd = 0.5,
         main = "", xaxt="n", yaxt = "n", range = 1.5,
         col = rep(c(col_control, col_pasture, col_sugarcane),3), lty = 1,
         pch = 21, bg = rep(c(col_control, col_pasture, col_sugarcane),3), cex = 1,
-        ylim = c(0,550))
+        ylim = c(0,400))
 
 title(ylab="Total Abundance", line=2.5, cex.lab=1.52)
 #title(main= "Predatory Insects", adj = 1)
@@ -901,7 +901,7 @@ axis(2, cex.axis = 1, gap.axis = -1)
 axis(1,labels = c("30 m","120 m","480 m"), cex.axis = 1.25, at =c(2,6,10), line = 0.5, tick = F, gap.axis = -1)
 axis(1,labels = rep("",9), cex.axis = 0.8, at =c(1,2,3, 5,6,7, 9,10,11), line = 0,tick = T)
 
-position1 <- 550
+position1 <- 400
 
 text(y = rep(position1, 9),x = c(1,2,3 ),
      labels = c("b","a","b"  ),
