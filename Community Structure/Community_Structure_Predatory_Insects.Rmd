@@ -184,7 +184,8 @@ col <- rep("lightsalmon1", ncol(sum_com_predators))
 col_survey_1 <- "#0072B2"
 col_survey_2 <- "#CC79A7"
 col_survey_3 <- "#D55E00"
-col_survey_4 <- "#E69F00"
+col_survey_4 <- "#DDCC77"
+
 
 
 fit_plot <- gllvm(as.data.frame(sum_com_predators), X = data.frame(ID = predictors$ID),

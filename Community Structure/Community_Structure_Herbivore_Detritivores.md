@@ -231,7 +231,7 @@ col[Trait$trait[Trait$trophic == "consumer"] == "insect_consumer" ] <- "cyan3"
 col_survey_1 <- "#0072B2"
 col_survey_2 <- "#CC79A7"
 col_survey_3 <- "#D55E00"
-col_survey_4 <- "#E69F00"
+col_survey_4 <- "#DDCC77"
 
 
 fit_plot <- gllvm(sum_com_herb_det, X = data.frame(ID = predictors$ID),

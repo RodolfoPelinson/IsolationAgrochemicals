@@ -324,7 +324,7 @@ simple addition of one species that only has one occurrence added enough
 noise to make interactive effects of treatments disappear when we did a
 model selection based on AICc.
 
-Why did this happened? This is likely due to the fact that we have
+Why did this happen? This is likely due to the fact that we have
 relatively small communities, with about 10 or less species. In this
 case, the inclusion of one more species with little to no information
 regarding the effect of treatments on its abundance increased the AIC

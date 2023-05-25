@@ -225,7 +225,7 @@ Ploting it:
 col_survey_1 <- "#0072B2"
 col_survey_2 <- "#CC79A7"
 col_survey_3 <- "#D55E00"
-col_survey_4 <- "#E69F00"
+col_survey_4 <- "#DDCC77"
 
 par(mar = c(3.5, 4, 0.1, 0.1)+ 0.1, cex = 0.7, bty = "l")
 boxplot(com_predators_ab ~ SS, outline = F,

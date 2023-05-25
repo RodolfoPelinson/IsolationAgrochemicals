@@ -229,7 +229,7 @@ col <- rep("lightsalmon1", ncol(sum_com_predators))
 col_survey_1 <- "#0072B2"
 col_survey_2 <- "#CC79A7"
 col_survey_3 <- "#D55E00"
-col_survey_4 <- "#E69F00"
+col_survey_4 <- "#DDCC77"
 
 
 fit_plot <- gllvm(as.data.frame(sum_com_predators), X = data.frame(ID = predictors$ID),
@@ -256,7 +256,7 @@ ymin <- min(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1 - 0.005
 ymax <- max(c(scaled_lvs$sites[,2], scaled_lvs$new_species[,2]))*1.1 + 0.005
 
 
-par(mar = c(4,4,1.25,.1),  mfrow = c(2,1))
+par(mar = c(4,4,1.25,.1),  mfrow = c(2,1), cex = 0.8)
 
   plot(NA,xlim = c(xmin, xmax), ylim = c(ymin, ymax), ylab = "LV2", xlab = "LV1", axes = F)
   axis(1 , gap.axis = -10)
