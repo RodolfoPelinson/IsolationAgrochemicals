@@ -2,10 +2,6 @@ library(vegan)
 
 data <- read.csv("Data/com_orig.csv", header = T, stringsAsFactors = F, row.names = 1)
 Trait <- read.csv("Data/Trait.csv", header = T, stringsAsFactors = F)
-coord <- read.csv("Data/coord.csv", header = T, stringsAsFactors = F, row.names = 1)
-#chlorophyll <- read.csv("Data/chlorophyll.csv", header = T, row.names = 1, sep = ",")
-
-
 
 SS <- as.factor(data$survey)
 

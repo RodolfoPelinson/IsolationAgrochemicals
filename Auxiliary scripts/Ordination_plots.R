@@ -57,9 +57,9 @@ plot_all_surveys <- function(){
   }
 
   points(centroid_1[1], centroid_1[2], bg = col_survey_1, pch = 23, cex = 1.5)
-  points(centroid_2[1], centroid_2[2], bg = col_survey_2, pch = 24, cex = 1.5)
-  points(centroid_3[1], centroid_3[2], bg = col_survey_3, pch = 22, cex = 1.5)
-  points(centroid_4[1], centroid_4[2], bg = col_survey_4, pch = 21, cex = 1.5)
+  points(centroid_2[1], centroid_2[2], bg = col_survey_2, pch = 23, cex = 1.5)
+  points(centroid_3[1], centroid_3[2], bg = col_survey_3, pch = 23, cex = 1.5)
+  points(centroid_4[1], centroid_4[2], bg = col_survey_4, pch = 23, cex = 1.5)
 
   box()
 }
